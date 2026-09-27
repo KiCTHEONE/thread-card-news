@@ -44,3 +44,20 @@ BROADCASTER_DOMAINS = [
     "g1tv.co.kr", "jibs.co.kr", "ubc.co.kr", "cjb.co.kr", "jtv.co.kr",
     "busanmbc.co.kr", "dgmbc.com", "kjmbc.co.kr", "tjmbc.co.kr", "mbcgn.kr", "jmbc.co.kr",
 ]
+
+
+# 구글 뉴스가 언론사 이름 대신 도메인을 주는 경우 보기 좋은 이름으로 바꾼다
+DOMAIN_NAMES = {
+    "kbs.co.kr": "KBS", "imbc.com": "MBC", "sbs.co.kr": "SBS", "ebs.co.kr": "EBS",
+    "jtbc.co.kr": "JTBC", "tvchosun.com": "TV조선", "ichannela.com": "채널A", "mbn.co.kr": "MBN",
+    "ytn.co.kr": "YTN", "yonhapnewstv.co.kr": "연합뉴스TV", "yna.co.kr": "연합뉴스", "news1.kr": "뉴스1",
+    "nocutnews.co.kr": "CBS노컷뉴스",
+}
+
+
+def display_name(source):
+    name = source.strip().lower()
+    for domain, label in DOMAIN_NAMES.items():
+        if name == domain or name.endswith("." + domain):
+            return label
+    return source

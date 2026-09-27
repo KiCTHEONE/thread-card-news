@@ -96,7 +96,7 @@ def topic_tag(data, topic=None):
     return ((topic or {}).get("tag") or data.get("topic_tag", "")).lstrip("#").replace(" ", "")
 
 
-def compose_reply(data, articles):
+def compose_reply(data, articles, max_links=4):
     ids = []
     for card in data["cards"]:
         for i in card["source_ids"]:
@@ -109,7 +109,7 @@ def compose_reply(data, articles):
         a = articles[i - 1]
         # 원문 주소로 바꾸지 못한 구글 뉴스 링크는 수백 자짜리 리디렉트 주소라 제목만 적는다
         # Threads는 게시물당 링크 5개, 500자 제한
-        with_link = "news.google.com" not in a.link and links < 5
+        with_link = "news.google.com" not in a.link and links < max_links
         title = a.title if len(a.title) <= 30 else a.title[:29] + "…"
         item = f"\n\n{a.source} · {title}" + (f"\n{a.link}" if with_link else "")
         if len(text) + len(item) > TEXT_LIMIT:
@@ -133,6 +133,7 @@ def build_post(data, articles, now, out_dir, topic=None):
         "text": compose_text(data, now, topic),
         "topic_tag": topic_tag(data, topic),
         "reply": compose_reply(data, articles),
+        "reply_fallbacks": [compose_reply(data, articles, n) for n in (2, 0)],
         # 카드에 실제로 쓴 기사만 '사용함'으로 기록해, 이번에 빠진 기사는 다음 회차에 다시 후보가 된다
         "pending_links": used_links,
         "card_titles": [c["title"] for c in data["cards"]],
@@ -204,6 +205,19 @@ def cmd_build(args):
     set_output("post_dir", args.out)
 
 
+def post_reply(client, post_id, manifest):
+    """출처 답글. 링크 수 제한에 걸리면 링크를 줄여 다시 시도한다 (본문은 이미 올라갔으므로 실패해도 넘어간다)."""
+    texts = [manifest["reply"]] + manifest.get("reply_fallbacks", [])
+    for text in texts:
+        try:
+            client.reply_text(post_id, text)
+            return
+        except Exception as e:
+            print(f"[post] 출처 답글 실패: {e}")
+            if "4279111" not in str(e):  # 링크 개수 초과가 아니면 재시도해도 같은 결과
+                return
+
+
 def cmd_post(args):
     with open(os.path.join(args.dir, "post.json"), encoding="utf-8") as f:
         manifest = json.load(f)
@@ -224,10 +238,7 @@ def cmd_post(args):
     post_id = client.post_carousel(urls, manifest["text"], manifest.get("topic_tag", ""))
     print(f"[post] 게시 완료: {post_id}")
     if manifest["reply"]:
-        try:
-            client.reply_text(post_id, manifest["reply"])
-        except Exception as e:  # 본문은 이미 올라갔으므로 답글 실패로 전체를 실패 처리하지 않는다
-            print(f"[post] 출처 답글 실패: {e}")
+        post_reply(client, post_id, manifest)
 
     state = load_state(args.state_dir)
     now = time.time()

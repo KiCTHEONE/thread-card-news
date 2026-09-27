@@ -7,6 +7,8 @@ from dataclasses import dataclass
 
 import feedparser
 
+from .sources import display_name
+
 USER_AGENT = "Mozilla/5.0 (compatible; thread-card-news/1.0)"
 
 # 피드 제목 대신 카드에 짧게 표시할 언론사 이름
@@ -63,7 +65,7 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
             published = calendar.timegm(ts)
             link = entry.get("link", "")
             title = _clean(entry.get("title", ""))
-            outlet = _clean(entry.get("source", {}).get("title", ""))
+            outlet = display_name(_clean(entry.get("source", {}).get("title", "")))
             if outlet and title.endswith(f" - {outlet}"):
                 title = title[: -len(outlet) - 3]  # 구글뉴스 "제목 - 언론사" 꼬리 제거
             key = _normalize_title(title)
