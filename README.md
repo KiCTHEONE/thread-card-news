@@ -40,16 +40,18 @@ GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다
 | Variable (선택) | `LLM_PROVIDER` | `gemini`(기본) 또는 `claude` |
 | Variable (선택) | `GEMINI_MODEL` | 기본값 `gemini-flash-latest` |
 | Variable (선택) | `CLAUDE_MODEL` | 기본값 `claude-opus-5` |
-| Variable (선택) | `IMAGE_HOST` | `github`로 두면 public 저장소의 raw URL 사용 (기본은 무료 호스팅) |
+| Secret (선택) | `IMGBB_API_KEY` | private 저장소일 때 이미지 호스팅용 ImgBB 키 |
 | Variable (선택) | `IMAGE_BASE_URL` | 이미지를 직접 호스팅할 때의 공개 URL |
 
 ### 4. 이미지 호스팅
-Threads API는 이미지를 **공개 URL**로만 받습니다.
-- **기본값**: 무료 임시 호스팅(litterbox, 72시간 보관)에 올려 그 주소를 넘깁니다. 저장소가 private이어도 동작합니다.
-  Threads는 게시할 때 이미지를 복사해 가므로 원본이 지워져도 게시물은 그대로입니다.
-- **public 저장소라면**: Variable `IMAGE_HOST=github` 로 설정하면 `assets` 브랜치의 `raw.githubusercontent.com` 주소를 씁니다.
-- **직접 호스팅(S3, R2 등)**: `IMAGE_BASE_URL` 에 공개 URL 경로를 지정하세요.
+Threads API는 이미지를 **공개 URL**로만 받습니다. 둘 중 하나를 고르세요.
+- **저장소를 public으로**: 추가 설정 없이 `assets` 브랜치의 `raw.githubusercontent.com` 주소를 씁니다.
+  (API 키 등 Secrets는 public이어도 공개되지 않습니다.)
+- **저장소를 private으로 유지**: https://api.imgbb.com 에서 무료 API 키를 받아 Secret `IMGBB_API_KEY`로 등록하면
+  ImgBB에 올립니다(3일 뒤 자동 삭제).
+- **직접 호스팅(S3, R2 등)**: Variable `IMAGE_BASE_URL`에 공개 URL 경로를 지정하세요.
 
+Threads는 게시할 때 이미지를 복사해 가므로 원본이 지워져도 게시물은 그대로입니다.
 `assets` 브랜치에는 `state.json`(이미 올린 기사 목록)이 커밋 하나로 강제 푸시되어 저장소 용량이 늘지 않습니다.
 
 ### 5. 테스트

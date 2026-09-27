@@ -7,6 +7,7 @@
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -47,11 +48,17 @@ def set_output(name, value):
     print(f"{name}={value}")
 
 
+def _format_bullets(text):
+    # 모델이 항목을 한 줄에 이어 쓰는 경우가 있어 '•' 앞에서 줄을 바꾼다
+    text = re.sub(r"\s*•\s*", "\n• ", text.strip())
+    return re.sub(r"\n{2,}", "\n", text).strip()
+
+
 def compose_text(data, now):
     header = f"[{now:%m.%d} {now:%H}시 정치 브리핑]"
     tag = "#" + data["topic_tag"].lstrip("#").replace(" ", "")
     body_limit = TEXT_LIMIT - len(header) - len(tag) - 4
-    return f"{header}\n{truncate(data['thread_text'].strip(), body_limit)}\n\n{tag}"
+    return f"{header}\n{truncate(_format_bullets(data['thread_text']), body_limit)}\n\n{tag}"
 
 
 def compose_reply(data, articles):

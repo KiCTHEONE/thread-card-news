@@ -34,6 +34,7 @@ jobs:
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
       ACCOUNT_HANDLE: ${{ vars.ACCOUNT_HANDLE || '@politics_hourly' }}
       CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
+      IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
       ASSETS_BRANCH: assets
       LOOKBACK_MINUTES: ${{ inputs.lookback_minutes || '90' }}
       TZ: Asia/Seoul
@@ -62,17 +63,16 @@ jobs:
         run: python -m cardnews build --state-dir assets --out "assets/cards/$(date +%Y%m%d-%H%M)"
 
       - name: Publish images to assets branch
-        if: steps.build.outputs.post_dir != '' && vars.IMAGE_HOST == 'github'
+        if: steps.build.outputs.post_dir != '' && env.IMGBB_API_KEY == '' && vars.IMAGE_BASE_URL == ''
         run: ./scripts/push_assets.sh "Add cards ${{ steps.build.outputs.post_dir }}"
 
       - name: Post to Threads
         if: steps.build.outputs.post_dir != ''
         run: |
           DIR="${{ steps.build.outputs.post_dir }}"
-          # IMAGE_HOST=github: public 저장소의 assets 브랜치 raw URL 사용
-          # 그 외(기본): 무료 이미지 호스팅(litterbox)에 업로드
+          # 이미지 주소: IMAGE_BASE_URL > ImgBB(IMGBB_API_KEY) > public 저장소의 assets 브랜치 raw URL
           BASE_URL="${IMAGE_BASE_URL:-}"
-          if [ -z "$BASE_URL" ] && [ "${{ vars.IMAGE_HOST }}" = "github" ]; then
+          if [ -z "$BASE_URL" ] && [ -z "$IMGBB_API_KEY" ]; then
             BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${ASSETS_BRANCH}/${DIR#assets/}"
           fi
           python -m cardnews post --state-dir assets --dir "$DIR" --base-url "$BASE_URL" \
@@ -85,7 +85,7 @@ jobs:
         run: ./scripts/push_assets.sh "Update state after ${{ steps.build.outputs.post_dir }}"
 
       - name: Upload cards as artifact
-        if: steps.build.outputs.post_dir != ''
+        if: always() && steps.build.outputs.post_dir != ''
         uses: actions/upload-artifact@v4
         with:
           name: cards
