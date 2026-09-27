@@ -3,6 +3,8 @@
 구글 뉴스의 언론사 표기는 "KBS 뉴스", "대구MBC", "JTBC News"처럼 제각각이라
 공백을 없애고 소문자로 바꾼 뒤 방송사 이름이 들어 있는지로 판단한다.
 """
+import re
+
 
 # 이름에 들어 있으면 방송사로 보는 표기 (다른 언론사 이름과 겹칠 일이 없는 것만)
 BROADCASTER_TOKENS = [
@@ -71,13 +73,19 @@ FOREIGN_OUTLETS = [
     ("the guardian", "가디언"), ("al jazeera", "알자지라"), ("nhk", "NHK"), ("kyodo", "교도통신"),
     ("nikkei", "닛케이"), ("npr", "NPR"), ("politico", "폴리티코"), ("the economist", "이코노미스트"),
     ("france 24", "프랑스24"), ("deutsche welle", "DW"), ("voice of america", "VOA"), ("voa", "VOA"),
+    ("abc news", "ABC뉴스"), ("cbs news", "CBS뉴스"), ("nbc news", "NBC뉴스"), ("axios", "악시오스"),
+    ("time", "타임"), ("the diplomat", "디플로맷"), ("south china morning post", "SCMP"),
+    ("japan times", "재팬타임스"), ("nk news", "NK뉴스"), ("afp", "AFP"), ("the hill", "더힐"),
 ]
 
 
 def foreign_outlet_name(source):
-    """허용된 해외 언론사면 한국어 이름을, 아니면 None을 돌려준다."""
+    """허용된 해외 언론사면 한국어 이름을, 아니면 None을 돌려준다.
+
+    단어 단위로 비교한다 ("Yonhap News"가 "ap news"로, "Korea Times"가 "time"으로 잡히지 않게).
+    """
     name = " ".join(source.lower().split())
     for token, label in FOREIGN_OUTLETS:
-        if token in name:
+        if re.search(rf"(?<![a-z]){re.escape(token)}(?![a-z])", name):
             return label
     return None

@@ -115,7 +115,7 @@
   ],
   "foreign": {
     "enabled": true,
-    "per_query_limit": 3,
+    "per_query_limit": 4,
     "queries": [
       "South Korea politics",
       "Lee Jae-myung",
@@ -125,7 +125,8 @@
       "South Korea tariffs trade",
       "Korea United States alliance",
       "Korea Japan China relations"
-    ]
+    ],
+    "lookback_minutes": 720
   },
   "tag": "정치뉴스",
   "lookback_minutes": 180,

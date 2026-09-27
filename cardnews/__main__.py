@@ -200,9 +200,11 @@ def cmd_build(args):
         foreign = topic.get("foreign", {})
         if foreign.get("enabled"):
             f_limit = int(foreign.get("per_query_limit", 3))
-            for feed in google_news_feeds(foreign["queries"], lookback, lang="en"):
+            # 해외 기사는 국내보다 드문드문 나오므로 더 긴 기간에서 찾는다 (이미 쓴 기사는 seen으로 제외)
+            f_lookback = max(lookback, int(foreign.get("lookback_minutes", lookback)))
+            for feed in google_news_feeds(foreign["queries"], f_lookback, lang="en"):
                 kept = []
-                for a in fetch_articles([feed], lookback, state["seen"], 500):
+                for a in fetch_articles([feed], f_lookback, state["seen"], 500):
                     name = foreign_outlet_name(a.source)
                     if name:
                         a.source, a.foreign = name, True
