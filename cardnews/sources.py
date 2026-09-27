@@ -34,3 +34,13 @@ def source_allowed(source, policy, extra_allowed=()):
     if policy == "list":
         return source in extra_allowed
     return True
+
+
+# 구글 뉴스에서 방송사 기사만 검색할 때 쓰는 도메인 (site: 검색)
+BROADCASTER_DOMAINS = [
+    "kbs.co.kr", "imbc.com", "sbs.co.kr", "ebs.co.kr",
+    "jtbc.co.kr", "tvchosun.com", "ichannela.com", "mbn.co.kr", "ytn.co.kr", "yonhapnewstv.co.kr",
+    "nocutnews.co.kr", "obsnews.co.kr", "knn.co.kr", "tbc.co.kr", "tjb.co.kr", "ikbc.co.kr",
+    "g1tv.co.kr", "jibs.co.kr", "ubc.co.kr", "cjb.co.kr", "jtv.co.kr",
+    "busanmbc.co.kr", "dgmbc.com", "kjmbc.co.kr", "tjmbc.co.kr", "mbcgn.kr", "jmbc.co.kr",
+]

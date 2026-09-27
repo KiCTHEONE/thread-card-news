@@ -17,11 +17,12 @@ def load_topic():
     return topic if topic.get("enabled") else None
 
 
-def google_news_feeds(queries, lookback_minutes):
-    # 구글 뉴스 검색 RSS. when: 연산자로 최근 기사만 받는다
+def google_news_feeds(queries, lookback_minutes, sites=()):
+    """구글 뉴스 검색 RSS 주소. when: 으로 최근 기사만, sites가 있으면 해당 도메인에서만 찾는다."""
     days = max(1, -(-lookback_minutes // 1440))
+    site_filter = f" ({' OR '.join('site:' + d for d in sites)})" if sites else ""
     return [
-        f"https://news.google.com/rss/search?q={quote(q + f' when:{days}d')}&hl=ko&gl=KR&ceid=KR:ko"
+        f"https://news.google.com/rss/search?q={quote(q + site_filter + f' when:{days}d')}&hl=ko&gl=KR&ceid=KR:ko"
         for q in queries
     ]
 

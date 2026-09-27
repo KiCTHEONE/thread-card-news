@@ -17,7 +17,7 @@ from .fetch import Article, dedupe, fetch_articles, resolve_google_links
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
-from .sources import source_allowed
+from .sources import BROADCASTER_DOMAINS, source_allowed
 from .topic import google_news_feeds, load_topic, matches
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
 from .token_store import current_token, refresh_if_needed
@@ -141,8 +141,12 @@ def cmd_build(args):
             return kept
 
         searched = []
-        for feed in google_news_feeds(topic["search_queries"], lookback):
-            searched += allowed(fetch_articles([feed], lookback, state["seen"], 500))[:per_query]
+        sites = BROADCASTER_DOMAINS if policy == "broadcast" else ()
+        # 방송사 도메인 검색과 일반 검색(지역 방송사 등 도메인 목록 밖 방송사용)을 함께 쓴다
+        for site_feed, plain_feed in zip(google_news_feeds(topic["search_queries"], lookback, sites),
+                                         google_news_feeds(topic["search_queries"], lookback)):
+            feeds = [site_feed, plain_feed] if sites else [plain_feed]
+            searched += dedupe(allowed(fetch_articles(feeds, lookback, state["seen"], 500)))[:per_query]
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
         general = allowed([a for a in general if matches(a, topic["keywords"])])[:per_query]
         articles = dedupe(searched + general)[: config.MAX_ARTICLES]
