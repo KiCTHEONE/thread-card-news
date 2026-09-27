@@ -20,9 +20,9 @@ GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다
 4. 같은 화면의 **User Token Generator**에서 계정 옆 *Generate Access Token*을 눌러 토큰을 복사합니다.
    이 값이 `THREADS_ACCESS_TOKEN`입니다. 사용자 ID는 토큰으로 자동 조회하므로 따로 넣지 않습니다.
 
-> 토큰은 60일 뒤 만료됩니다. 만료 전에
-> `GET https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=<토큰>`
-> 으로 갱신하고 Secret을 업데이트하세요.
+> 토큰은 60일 동안 유효하며 워크플로가 **일주일마다 자동 갱신**합니다. 갱신된 토큰은 처음 등록한
+> Secret 값으로 암호화해 `assets` 브랜치의 `token.json`에 보관합니다. 갱신이 끊겨 만료되면
+> 새 토큰을 발급받아 `THREADS_ACCESS_TOKEN` Secret만 바꾸면 됩니다.
 
 ### 2. AI API 키 발급
 - **Gemini (기본, 무료 등급)**: https://aistudio.google.com 에 구글 계정으로 로그인 → **Get API key** → 키 생성
@@ -68,6 +68,16 @@ python -m cardnews demo --out output/demo                 # API 없이 카드 �
 python -m cardnews build --state-dir assets --out output/run   # 수집 + 요약 + 렌더링
 python -m cardnews post --state-dir assets --dir output/run --base-url https://... --dry-run
 ```
+
+## 주제 모드 (`topic.json`)
+`enabled: true`이면 정해진 주제의 기사만 모아 올립니다.
+- `search_queries`: 구글 뉴스에서 검색할 문구 (정치 RSS 피드와 함께 수집)
+- `keywords`: 제목·요약에 이 단어가 하나라도 있는 기사만 사용
+- `label`: 카드 표지와 본문 머리말에 들어갈 이름
+- `tag`: 쓰레드 주제 태그 (예: `재선거` → `#재선거`)
+- `lookback_minutes`: 몇 분 전 기사까지 볼지 (이미 올린 기사는 자동 제외)
+
+일반 정치 브리핑으로 돌아가려면 `enabled`를 `false`로 바꾸세요.
 
 ## 커스터마이징
 - **뉴스 소스**: `cardnews/config.py`의 `DEFAULT_FEEDS` 또는 `FEEDS` 환경변수(쉼표 구분)

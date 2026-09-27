@@ -63,6 +63,9 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
             published = calendar.timegm(ts)
             link = entry.get("link", "")
             title = _clean(entry.get("title", ""))
+            outlet = _clean(entry.get("source", {}).get("title", ""))
+            if outlet and title.endswith(f" - {outlet}"):
+                title = title[: -len(outlet) - 3]  # 구글뉴스 "제목 - 언론사" 꼬리 제거
             key = _normalize_title(title)
             if published < cutoff or not link or link in seen_links or not key or key in titles:
                 continue
@@ -71,7 +74,7 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
                 title=title,
                 summary=_clean(entry.get("summary", ""))[:400],
                 link=link,
-                source=_clean(entry.get("source", {}).get("title", "")) or source,
+                source=outlet or source,
                 published=published,
             ))
         print(f"[fetch] {source}: 전체 {len(parsed.entries)}건 중 새 기사 {len(articles) - before}건")

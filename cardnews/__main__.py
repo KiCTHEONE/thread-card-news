@@ -17,7 +17,9 @@ from .fetch import Article, fetch_articles
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
+from .topic import google_news_feeds, load_topic, matches
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
+from .token_store import current_token, refresh_if_needed
 
 STATE_FILE = "state.json"
 STATE_RETENTION_DAYS = 3
@@ -54,9 +56,11 @@ def _format_bullets(text):
     return re.sub(r"\n{2,}", "\n", text).strip()
 
 
-def compose_text(data, now):
-    header = f"[{now:%m.%d} {now:%H}시 정치 브리핑]"
-    tag = "#" + data["topic_tag"].lstrip("#").replace(" ", "")
+def compose_text(data, now, topic=None):
+    label = topic["label"] if topic else "정치 브리핑"
+    header = f"[{now:%m.%d} {now:%H}시 {label}]"
+    tag_name = topic["tag"] if topic else data["topic_tag"]
+    tag = "#" + tag_name.lstrip("#").replace(" ", "")
     body_limit = TEXT_LIMIT - len(header) - len(tag) - 4
     return f"{header}\n{truncate(_format_bullets(data['thread_text']), body_limit)}\n\n{tag}"
 
@@ -80,12 +84,13 @@ def compose_reply(data, articles):
     return text if links else ""
 
 
-def build_post(data, articles, now, out_dir):
-    images = render_all(data, articles, now, out_dir, config.ACCOUNT_HANDLE, config.FONT_PATH)
+def build_post(data, articles, now, out_dir, topic=None):
+    label = topic["label"] if topic else "정치 브리핑"
+    images = render_all(data, articles, now, out_dir, config.ACCOUNT_HANDLE, config.FONT_PATH, label)
     manifest = {
         "created_at": now.isoformat(),
         "images": [os.path.basename(p) for p in images],
-        "text": compose_text(data, now),
+        "text": compose_text(data, now, topic),
         "reply": compose_reply(data, articles),
         "pending_links": [a.link for a in articles],
         "summary": data,
@@ -101,18 +106,29 @@ def cmd_build(args):
         sys.exit(f"{key_name} 가 설정되지 않았습니다. GitHub Settings → Secrets and variables → Actions 에 추가하세요.")
     now = datetime.now(KST)
     state = load_state(args.state_dir)
-    articles = fetch_articles(config.FEEDS, config.LOOKBACK_MINUTES, state["seen"], config.MAX_ARTICLES)
+    topic = load_topic()
+    if topic:
+        # 수동 실행에서 LOOKBACK_MINUTES를 따로 주지 않으면 주제 설정값을 쓴다
+        lookback = int(os.environ.get("LOOKBACK_MINUTES_OVERRIDE") or topic.get("lookback_minutes", 1440))
+        feeds = google_news_feeds(topic["search_queries"], lookback) + config.FEEDS
+        print(f"[build] 주제 모드: {topic['label']} (최근 {lookback}분)")
+        articles = fetch_articles(feeds, lookback, state["seen"], 500)
+        articles = [a for a in articles if matches(a, topic["keywords"])][: config.MAX_ARTICLES]
+        min_articles = int(topic.get("min_articles", 2))
+    else:
+        articles = fetch_articles(config.FEEDS, config.LOOKBACK_MINUTES, state["seen"], config.MAX_ARTICLES)
+        min_articles = config.MIN_ARTICLES
     print(f"[build] 새 기사 {len(articles)}건")
-    if len(articles) < config.MIN_ARTICLES:
+    if len(articles) < min_articles:
         print("[build] 기사가 부족해 이번 회차는 건너뜁니다.")
         set_output("post_dir", "")
         return
-    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now)
+    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic)
     if not data["worth_posting"] or len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")
         set_output("post_dir", "")
         return
-    manifest = build_post(data, articles, now, args.out)
+    manifest = build_post(data, articles, now, args.out, topic)
     print(manifest["text"])
     set_output("post_dir", args.out)
 
@@ -132,7 +148,7 @@ def cmd_post(args):
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
 
-    client = ThreadsClient(config.THREADS_ACCESS_TOKEN)
+    client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
     post_id = client.post_carousel(urls, manifest["text"])
     print(f"[post] 게시 완료: {post_id}")
     if manifest["reply"]:
@@ -146,6 +162,13 @@ def cmd_post(args):
     state["seen"].update({link: now for link in manifest["pending_links"]})
     state["posts"].append({"id": post_id, "created_at": manifest["created_at"]})
     save_state(args.state_dir, state)
+
+
+def cmd_refresh_token(args):
+    if not config.THREADS_ACCESS_TOKEN:
+        sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
+    changed = refresh_if_needed(args.state_dir, config.THREADS_ACCESS_TOKEN, force=args.force)
+    set_output("changed", "true" if changed else "false")
 
 
 def cmd_demo(args):
@@ -198,6 +221,11 @@ def main():
     p.add_argument("--base-url", default="", help="이미지가 공개된 URL 경로. 비우면 무료 이미지 호스팅에 업로드")
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_post)
+
+    r = sub.add_parser("refresh-token", help="Threads 토큰을 필요할 때 갱신")
+    r.add_argument("--state-dir", default="assets")
+    r.add_argument("--force", action="store_true")
+    r.set_defaults(func=cmd_refresh_token)
 
     d = sub.add_parser("demo", help="샘플 데이터로 카드 이미지만 렌더링")
     d.add_argument("--out", default="output/demo")

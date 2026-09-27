@@ -84,10 +84,10 @@ def _footer(draw, fonts, handle, page):
     draw.text((W - PAD, H - PAD - 30), page, font=f, fill=MUTED, anchor="ra")
 
 
-def render_cover(data, now, fonts, handle, total):
+def render_cover(data, now, fonts, handle, total, label="정치 브리핑"):
     img = Image.new("RGB", (W, H), BG_COVER)
     d = ImageDraw.Draw(img)
-    label = f"{now:%m.%d} ({WEEKDAYS[now.weekday()]}) {now:%H}시 정치 브리핑"
+    label = f"{now:%m.%d} ({WEEKDAYS[now.weekday()]}) {now:%H}시 {label}"
     d.rectangle((PAD, PAD, PAD + 12, PAD + 52), fill=ACCENT)
     d.text((PAD + 32, PAD + 4), label, font=fonts.get(38, bold=True), fill=ACCENT)
 
@@ -138,12 +138,12 @@ def render_card(card, index, total, sources, fonts, handle):
     return img
 
 
-def render_all(data, articles, now: datetime, out_dir, handle, font_override=""):
+def render_all(data, articles, now: datetime, out_dir, handle, font_override="", label="정치 브리핑"):
     fonts = Fonts(font_override)
     os.makedirs(out_dir, exist_ok=True)
     total = len(data["cards"]) + 1
     paths = []
-    images = [render_cover(data, now, fonts, handle, total)]
+    images = [render_cover(data, now, fonts, handle, total, label)]
     for i, card in enumerate(data["cards"], 2):
         sources = sorted({articles[j - 1].source for j in card["source_ids"]})
         images.append(render_card(card, i, total, sources, fonts, handle))

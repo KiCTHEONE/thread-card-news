@@ -36,6 +36,7 @@ jobs:
       IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
       ASSETS_BRANCH: assets
       LOOKBACK_MINUTES: ${{ inputs.lookback_minutes || '90' }}
+      LOOKBACK_MINUTES_OVERRIDE: ${{ inputs.lookback_minutes }}
       TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +56,13 @@ jobs:
           mkdir -p assets
           if git fetch --depth=1 origin "$ASSETS_BRANCH" 2>/dev/null; then
             git show FETCH_HEAD:state.json > assets/state.json 2>/dev/null || rm -f assets/state.json
+            git show FETCH_HEAD:token.json > assets/token.json 2>/dev/null || rm -f assets/token.json
           fi
+
+      - name: Refresh Threads token
+        id: token
+        if: ${{ !inputs.dry_run }}
+        run: python -m cardnews refresh-token --state-dir assets
 
       - name: Build card news
         id: build
@@ -80,8 +87,8 @@ jobs:
           IMAGE_BASE_URL: ${{ vars.IMAGE_BASE_URL }}
 
       - name: Save state
-        if: steps.build.outputs.post_dir != '' && !inputs.dry_run
-        run: ./scripts/push_assets.sh "Update state after ${{ steps.build.outputs.post_dir }}"
+        if: always() && ((steps.build.outputs.post_dir != '' && !inputs.dry_run) || steps.token.outputs.changed == 'true')
+        run: ./scripts/push_assets.sh "Update state ${{ steps.build.outputs.post_dir }}"
 
       - name: Upload cards as artifact
         if: always() && steps.build.outputs.post_dir != ''

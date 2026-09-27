@@ -117,9 +117,20 @@ def _call_claude(user_content, model):
     return next(b.text for b in response.content if b.type == "text")
 
 
-def summarize(articles, provider, model, now=None):
+TOPIC_INSTRUCTIONS = """
+
+[주제 모드]
+이번에는 아래 주제에 관한 내용만 정리한다: {description}
+- 주제와 관련 없는 기사는 무시한다.
+- 같은 주제 안에서 쟁점별(경위, 책임 공방, 대응, 향후 절차 등)로 카드를 나눈다. 관련 내용이 적으면 2장까지 줄여도 된다.
+- 선관위·정당·후보 등 각 주체의 입장은 기사에 나온 대로만 전한다."""
+
+
+def summarize(articles, provider, model, now=None, topic=None):
     now = now or datetime.now(KST)
     user_content = f"현재 시각: {now:%Y-%m-%d %H:%M} (KST)\n\n기사 목록:\n{_format_articles(articles)}"
+    if topic:
+        user_content += TOPIC_INSTRUCTIONS.format(description=topic["description"])
     if provider == "gemini":
         text = _call_gemini(user_content, model)
     elif provider == "claude":

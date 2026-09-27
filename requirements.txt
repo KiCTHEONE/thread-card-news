@@ -3,3 +3,4 @@ feedparser>=6.0
 pillow>=10.0
 requests>=2.31
 google-genai>=2.0
+cryptography>=42
