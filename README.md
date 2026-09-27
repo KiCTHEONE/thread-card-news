@@ -74,6 +74,7 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 - `search_queries`: 구글 뉴스에서 검색할 문구 (검색어마다 최대 `per_query_limit`건, 정치 RSS 피드와 함께 수집)
 - `keywords`: 일반 정치 RSS 기사 중 이 단어가 하나라도 있는 기사만 사용
 - `label`: 카드 표지와 본문 머리말에 들어갈 이름
+- `allowed_sources`: 구글 뉴스 검색 결과 중 이 목록의 언론사 기사만 사용 (스팸·출처 불명 사이트 차단, 비우면 모두 허용)
 - `tag`: 쓰레드 주제 태그 (예: `재선거` → `#재선거`)
 - `lookback_minutes`: 몇 분 전 기사까지 볼지 (이미 올린 기사는 자동 제외)
 

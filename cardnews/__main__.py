@@ -78,15 +78,19 @@ def compose_reply(data, articles):
                 ids.append(i)
     text = "출처"
     links = 0
+    count = 0
     for i in ids:
         a = articles[i - 1]
-        item = f"\n\n{a.source} · {a.title}\n{a.link}"
+        # 구글 뉴스 링크는 수백 자짜리 리디렉트 주소라 제목만 적는다
         # Threads는 게시물당 링크 5개, 500자 제한
-        if links == 5 or len(text) + len(item) > TEXT_LIMIT:
+        with_link = "news.google.com" not in a.link and links < 5
+        item = f"\n\n{a.source} · {a.title}" + (f"\n{a.link}" if with_link else "")
+        if len(text) + len(item) > TEXT_LIMIT:
             continue
         text += item
-        links += 1
-    return text if links else ""
+        count += 1
+        links += with_link
+    return text if count else ""
 
 
 def build_post(data, articles, now, out_dir, topic=None):
@@ -124,6 +128,13 @@ def cmd_build(args):
             searched += fetch_articles([feed], lookback, state["seen"], per_query)
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
         general = [a for a in general if matches(a, topic["keywords"])][:per_query]
+        allowed = topic.get("allowed_sources")
+        if allowed:
+            # 구글 뉴스 검색에는 스팸·출처 불명 사이트도 섞이므로 등록된 언론사 기사만 쓴다
+            dropped = [a for a in searched if a.source not in allowed]
+            searched = [a for a in searched if a.source in allowed]
+            for a in dropped:
+                print(f"  x 허용 목록에 없는 출처 제외: ({a.source}) {a.title}")
         articles = dedupe(searched + general)[: config.MAX_ARTICLES]
         for a in articles:
             print(f"  - ({a.source}) {a.title}")
