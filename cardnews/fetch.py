@@ -92,3 +92,25 @@ def dedupe(articles):
         seen.update((a.link, key))
         out.append(a)
     return out
+
+
+def resolve_google_links(articles):
+    """구글 뉴스 리디렉트 주소(news.google.com/rss/articles/...)를 언론사 원문 주소로 바꾼다.
+
+    실패한 기사는 원래 주소를 그대로 둔다 (출처 답글에서 링크 없이 제목만 표시됨).
+    """
+    targets = [a for a in articles if "news.google.com" in a.link]
+    if not targets:
+        return
+    try:
+        from googlenewsdecoder import gnewsdecoder
+
+        results = gnewsdecoder([a.link for a in targets], timeout=15)
+    except Exception as e:
+        print(f"[fetch] 구글 뉴스 원문 주소 변환 실패: {e}")
+        return
+    for a, r in zip(targets, results):
+        if r.get("success") and r.get("decoded_url", "").startswith("http"):
+            a.link = r["decoded_url"]
+        else:
+            print(f"[fetch] 원문 주소 변환 실패 ({a.source}) {a.title}: {r.get('message')}")

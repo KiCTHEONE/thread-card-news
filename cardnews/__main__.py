@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 from . import config
-from .fetch import Article, dedupe, fetch_articles
+from .fetch import Article, dedupe, fetch_articles, resolve_google_links
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
@@ -81,10 +81,11 @@ def compose_reply(data, articles):
     count = 0
     for i in ids:
         a = articles[i - 1]
-        # 구글 뉴스 링크는 수백 자짜리 리디렉트 주소라 제목만 적는다
+        # 원문 주소로 바꾸지 못한 구글 뉴스 링크는 수백 자짜리 리디렉트 주소라 제목만 적는다
         # Threads는 게시물당 링크 5개, 500자 제한
         with_link = "news.google.com" not in a.link and links < 5
-        item = f"\n\n{a.source} · {a.title}" + (f"\n{a.link}" if with_link else "")
+        title = a.title if len(a.title) <= 30 else a.title[:29] + "…"
+        item = f"\n\n{a.source} · {title}" + (f"\n{a.link}" if with_link else "")
         if len(text) + len(item) > TEXT_LIMIT:
             continue
         text += item
@@ -94,6 +95,8 @@ def compose_reply(data, articles):
 
 
 def build_post(data, articles, now, out_dir, topic=None):
+    used = {i for card in data["cards"] for i in card["source_ids"]}
+    resolve_google_links([articles[i - 1] for i in sorted(used)])
     label = topic["label"] if topic else "정치 브리핑"
     images = render_all(data, articles, now, out_dir, config.ACCOUNT_HANDLE, config.FONT_PATH, label)
     manifest = {
@@ -115,6 +118,9 @@ def cmd_build(args):
         sys.exit(f"{key_name} 가 설정되지 않았습니다. GitHub Settings → Secrets and variables → Actions 에 추가하세요.")
     now = datetime.now(KST)
     state = load_state(args.state_dir)
+    if os.environ.get("IGNORE_SEEN") == "true":
+        print("[build] 테스트: 이미 올린 기사 기록을 무시합니다.")
+        state["seen"] = {}
     topic = load_topic()
     if topic:
         # 수동 실행에서 LOOKBACK_MINUTES를 따로 주지 않으면 주제 설정값을 쓴다

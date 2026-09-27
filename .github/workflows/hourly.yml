@@ -10,9 +10,13 @@ on:
         type: boolean
         default: false
       lookback_minutes:
-        description: "몇 분 전 기사까지 모을지 (비우면 90)"
+        description: "몇 분 전 기사까지 모을지 (비우면 설정값)"
         type: string
         default: ""
+      ignore_seen:
+        description: "이미 올린 기사도 다시 사용 (dry run 테스트용)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -37,6 +41,7 @@ jobs:
       ASSETS_BRANCH: assets
       LOOKBACK_MINUTES: ${{ inputs.lookback_minutes || '90' }}
       LOOKBACK_MINUTES_OVERRIDE: ${{ inputs.lookback_minutes }}
+      IGNORE_SEEN: ${{ inputs.dry_run && inputs.ignore_seen }}
       TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
