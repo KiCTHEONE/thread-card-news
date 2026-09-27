@@ -127,13 +127,18 @@ TOPIC_INSTRUCTIONS = """
 - 의혹이나 주장(예: 부정선거 주장)은 사실처럼 쓰지 말고 누가 주장했는지 밝힌다. 수사·재판 중인 사안은 결론을 단정하지 않는다."""
 
 
-def summarize(articles, provider, model, now=None, topic=None):
+def summarize(articles, provider, model, now=None, topic=None, recent_titles=()):
     now = now or datetime.now(KST)
     user_content = f"현재 시각: {now:%Y-%m-%d %H:%M} (KST)\n\n기사 목록:\n{_format_articles(articles)}"
     if topic:
         user_content += TOPIC_INSTRUCTIONS.format(description=topic["description"])
         if topic.get("categories"):
             user_content += "\n- cards[].tag는 다음 분류 중 하나만 쓴다: " + ", ".join(topic["categories"])
+    if recent_titles:
+        user_content += (
+            "\n\n[최근 게시한 카드 제목]\n" + "\n".join(f"- {t}" for t in recent_titles)
+            + "\n위 내용과 같은 소식은 새로운 전개가 있을 때만 다시 다루고, 되도록 다른 소식을 고른다."
+        )
     if provider == "gemini":
         text = _call_gemini(user_content, model)
     elif provider == "claude":

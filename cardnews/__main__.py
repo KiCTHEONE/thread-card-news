@@ -106,7 +106,9 @@ def build_post(data, articles, now, out_dir, topic=None):
         "images": [os.path.basename(p) for p in images],
         "text": compose_text(data, now, topic),
         "reply": compose_reply(data, articles),
-        "pending_links": [a.link for a in articles],
+        # 카드에 실제로 쓴 기사만 '사용함'으로 기록해, 이번에 빠진 기사는 다음 회차에 다시 후보가 된다
+        "pending_links": [articles[i - 1].link for i in sorted(used)],
+        "card_titles": [c["title"] for c in data["cards"]],
         "summary": data,
     }
     with open(os.path.join(out_dir, "post.json"), "w", encoding="utf-8") as f:
@@ -164,7 +166,8 @@ def cmd_build(args):
         print("[build] 기사가 부족해 이번 회차는 건너뜁니다.")
         set_output("post_dir", "")
         return
-    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic)
+    recent = [t for p in state["posts"][-6:] for t in p.get("card_titles", [])]
+    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic, recent)
     if not data["worth_posting"] or len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")
         set_output("post_dir", "")
@@ -201,7 +204,8 @@ def cmd_post(args):
     state = load_state(args.state_dir)
     now = time.time()
     state["seen"].update({link: now for link in manifest["pending_links"]})
-    state["posts"].append({"id": post_id, "created_at": manifest["created_at"]})
+    state["posts"].append({"id": post_id, "created_at": manifest["created_at"],
+                           "card_titles": manifest.get("card_titles", [])})
     save_state(args.state_dir, state)
 
 

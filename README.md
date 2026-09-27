@@ -9,7 +9,7 @@ RSS 수집 (최근 90분, 이미 쓴 기사 제외)
   → Threads 캐러셀 게시 + 출처 링크 답글
 ```
 
-GitHub Actions(`.github/workflows/hourly.yml`)가 30분마다(매시 7분, 37분) 실행합니다.
+GitHub Actions(`.github/workflows/hourly.yml`)가 30분마다(정각, 30분) 실행합니다. GitHub 예약 실행은 몇 분 늦게 시작될 수 있습니다.
 
 ## 설정
 
