@@ -143,8 +143,9 @@ def summarize(articles, provider, model, now=None, topic=None, recent_titles=())
     if recent_titles:
         user_content += (
             "\n\n[최근 24시간 동안 이미 올린 소식]\n" + "\n".join(f"- {t}" for t in recent_titles)
-            + "\n위 소식과 같은 사건은 다루지 않는다. 남은 기사 중 다른 사건만 카드로 만들고,"
-            " 다룰 만한 새 사건이 없으면 worth_posting을 false로 한다."
+            + "\n위 소식과 같은 사건은 다루지 않는다. 남은 기사 중 다른 사건만 카드로 만든다."
+            " 새 사건이 하나라도 있으면 그 사건만으로 카드를 만들고(1~2장도 괜찮다) worth_posting을 true로 한다."
+            " worth_posting은 새로 다룰 사건이 정말 하나도 없을 때만 false로 한다."
         )
     if provider == "gemini":
         text = _call_gemini(user_content, model)

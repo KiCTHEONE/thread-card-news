@@ -258,7 +258,11 @@ def cmd_build(args):
         # 카드를 뺐으면 본문 항목은 남은 카드 본문 첫 문장으로 다시 만든다 (본문과 카드가 어긋나지 않게)
         bullets = [re.split(r"(?<=[.다])\s", c["body"].strip(), maxsplit=1)[0] for c in kept]
     data["thread_text"] = intro + " " + " ".join(f"• {b}" for b in bullets)
-    if not data["worth_posting"] or len(data["cards"]) < 1:
+    # AI의 worth_posting 판단보다, 중복을 걸러내고 남은 새 카드가 있는지를 기준으로 한다
+    # (가벼운 대체 모델이 새 기사가 있어도 false를 내는 경우가 있었다)
+    if not data["worth_posting"] and data["cards"]:
+        print(f"[build] AI는 건너뛰자고 했지만 새 카드 {len(data['cards'])}장이 있어 게시합니다.")
+    if len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")
         set_output("post_dir", "")
         return
