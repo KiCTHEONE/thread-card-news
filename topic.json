@@ -49,7 +49,7 @@
     "국감",
     "의원"
   ],
-  "tag": "재선거",
+  "tag": "정치뉴스",
   "lookback_minutes": 180,
   "min_articles": 2,
   "source_policy": "broadcast",
@@ -61,5 +61,13 @@
   "extra_domains": [
     "yna.co.kr",
     "news1.kr"
+  ],
+  "categories": [
+    "선거",
+    "집회",
+    "특검",
+    "군사·안보",
+    "정당·정치인",
+    "일반 정치"
   ]
 }

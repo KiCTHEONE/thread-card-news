@@ -132,6 +132,8 @@ def summarize(articles, provider, model, now=None, topic=None):
     user_content = f"현재 시각: {now:%Y-%m-%d %H:%M} (KST)\n\n기사 목록:\n{_format_articles(articles)}"
     if topic:
         user_content += TOPIC_INSTRUCTIONS.format(description=topic["description"])
+        if topic.get("categories"):
+            user_content += "\n- cards[].tag는 다음 중 하나만 쓴다: " + ", ".join(topic["categories"])
     if provider == "gemini":
         text = _call_gemini(user_content, model)
     elif provider == "claude":
