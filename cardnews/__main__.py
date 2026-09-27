@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import re
+from itertools import zip_longest
 import sys
 import time
 from datetime import datetime
@@ -140,16 +141,18 @@ def cmd_build(args):
                     print(f"  x 출처 제외: ({a.source}) {a.title}")
             return kept
 
-        searched = []
+        per_feed = []
         sites = BROADCASTER_DOMAINS if policy == "broadcast" else ()
         # 방송사 도메인 검색과 일반 검색(지역 방송사 등 도메인 목록 밖 방송사용)을 함께 쓴다
         for site_feed, plain_feed in zip(google_news_feeds(topic["search_queries"], lookback, sites),
                                          google_news_feeds(topic["search_queries"], lookback)):
             feeds = [site_feed, plain_feed] if sites else [plain_feed]
-            searched += dedupe(allowed(fetch_articles(feeds, lookback, state["seen"], 500)))[:per_query]
+            per_feed.append(dedupe(allowed(fetch_articles(feeds, lookback, state["seen"], 500)))[:per_query])
+        # 검색어별 결과를 번갈아 섞어야 기사 수 상한에서 뒤쪽 주제(예: 정당)가 잘려 나가지 않는다
+        searched = [a for group in zip_longest(*per_feed) for a in group if a]
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
         general = allowed([a for a in general if matches(a, topic["keywords"])])[:per_query]
-        articles = dedupe(searched + general)[: config.MAX_ARTICLES]
+        articles = dedupe(searched + general)[: int(topic.get("max_articles", config.MAX_ARTICLES))]
         for a in articles:
             print(f"  - ({a.source}) {a.title}")
         min_articles = int(topic.get("min_articles", 2))
