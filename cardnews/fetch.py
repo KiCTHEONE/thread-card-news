@@ -39,6 +39,7 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
             print(f"[fetch] {url} 실패: {e}")
             continue
         source = _clean(parsed.feed.get("title", "")) or url
+        before = len(articles)
         for entry in parsed.entries:
             ts = entry.get("published_parsed") or entry.get("updated_parsed")
             if not ts:
@@ -57,6 +58,6 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
                 source=_clean(entry.get("source", {}).get("title", "")) or source,
                 published=published,
             ))
-        print(f"[fetch] {source}: 누적 {len(articles)}건")
+        print(f"[fetch] {source}: 전체 {len(parsed.entries)}건 중 새 기사 {len(articles) - before}건")
     articles.sort(key=lambda a: a.published, reverse=True)
     return articles[:max_articles]

@@ -60,6 +60,9 @@ def _format_articles(articles):
     return "\n".join(lines)
 
 
+GEMINI_FALLBACK_MODEL = "gemini-flash-lite-latest"
+
+
 def _call_gemini(user_content, model):
     from google import genai
     from google.genai import errors, types
@@ -69,20 +72,29 @@ def _call_gemini(user_content, model):
         system_instruction=SYSTEM_PROMPT,
         response_mime_type="application/json",
         response_json_schema=SCHEMA,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
-    # 무료 등급은 일시적인 한도 초과(429)나 과부하(503)가 잦아 몇 번 재시도한다
-    for attempt in range(4):
-        try:
-            response = client.models.generate_content(model=model, contents=user_content, config=config)
-            if not response.text:
-                raise RuntimeError(f"Gemini 응답이 비어 있습니다: {response.candidates}")
-            return response.text
-        except errors.APIError as e:
-            if e.code not in (429, 500, 503) or attempt == 3:
-                raise
-            wait = 20 * (attempt + 1)
-            print(f"[summarize] Gemini {e.code} 오류, {wait}초 후 재시도")
-            time.sleep(wait)
+    # 무료 등급은 일시적인 한도 초과(429)나 과부하(503)가 잦아 재시도하고,
+    # 그래도 안 되면 더 가벼운 모델로 한 번 더 시도한다
+    models = [model] + ([GEMINI_FALLBACK_MODEL] if model != GEMINI_FALLBACK_MODEL else [])
+    for m in models:
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(model=m, contents=user_content, config=config)
+                if not response.text:
+                    raise RuntimeError(f"Gemini 응답이 비어 있습니다: {response.candidates}")
+                print(f"[summarize] gemini / {m} 사용")
+                return response.text
+            except errors.APIError as e:
+                if e.code not in (429, 500, 503):
+                    raise
+                if attempt == 2:
+                    print(f"[summarize] {m} 계속 {e.code} 오류")
+                    break
+                wait = 20 * (attempt + 1)
+                print(f"[summarize] {m} {e.code} 오류, {wait}초 후 재시도")
+                time.sleep(wait)
+    raise RuntimeError("Gemini가 계속 응답하지 않아 이번 회차를 건너뜁니다.")
 
 
 def _call_claude(user_content, model):
@@ -114,7 +126,6 @@ def summarize(articles, provider, model, now=None):
         text = _call_claude(user_content, model)
     else:
         raise ValueError(f"알 수 없는 LLM_PROVIDER: {provider} (gemini 또는 claude)")
-    print(f"[summarize] {provider} / {model} 사용")
     data = json.loads(text)
 
     # 모델이 규칙을 넘겨도 카드/쓰레드 제약은 코드에서 보장한다

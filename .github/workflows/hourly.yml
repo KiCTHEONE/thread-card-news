@@ -9,6 +9,10 @@ on:
         description: "Threads에 올리지 않고 카드만 생성"
         type: boolean
         default: false
+      lookback_minutes:
+        description: "몇 분 전 기사까지 모을지 (비우면 90)"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -31,6 +35,7 @@ jobs:
       ACCOUNT_HANDLE: ${{ vars.ACCOUNT_HANDLE || '@politics_hourly' }}
       CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
       ASSETS_BRANCH: assets
+      LOOKBACK_MINUTES: ${{ inputs.lookback_minutes || '90' }}
       TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
