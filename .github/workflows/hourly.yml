@@ -31,7 +31,7 @@ jobs:
       GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-flash-latest' }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-      ACCOUNT_HANDLE: ${{ vars.ACCOUNT_HANDLE || '@politics_hourly' }}
+      ACCOUNT_HANDLE: ${{ vars.ACCOUNT_HANDLE || '@koreacardnews' }}
       CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
       IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
       ASSETS_BRANCH: assets

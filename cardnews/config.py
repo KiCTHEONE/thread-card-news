@@ -26,5 +26,5 @@ LLM_MODEL = GEMINI_MODEL if LLM_PROVIDER == "gemini" else CLAUDE_MODEL
 
 THREADS_ACCESS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN", "")
 
-ACCOUNT_HANDLE = os.environ.get("ACCOUNT_HANDLE", "@politics_hourly")
+ACCOUNT_HANDLE = os.environ.get("ACCOUNT_HANDLE", "@koreacardnews")
 FONT_PATH = os.environ.get("CARD_FONT_PATH", "")

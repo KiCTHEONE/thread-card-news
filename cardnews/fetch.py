@@ -9,6 +9,22 @@ import feedparser
 
 USER_AGENT = "Mozilla/5.0 (compatible; thread-card-news/1.0)"
 
+# 피드 제목 대신 카드에 짧게 표시할 언론사 이름
+SOURCE_NAMES = {
+    "yna.co.kr": "연합뉴스",
+    "hani.co.kr": "한겨레",
+    "khan.co.kr": "경향신문",
+    "donga.com": "동아일보",
+    "mk.co.kr": "매일경제",
+}
+
+
+def _source_name(url, fallback):
+    for domain, name in SOURCE_NAMES.items():
+        if domain in url:
+            return name
+    return fallback
+
 
 @dataclass
 class Article:
@@ -38,7 +54,7 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
         except Exception as e:  # 피드 하나가 실패해도 나머지는 진행
             print(f"[fetch] {url} 실패: {e}")
             continue
-        source = _clean(parsed.feed.get("title", "")) or url
+        source = _source_name(url, _clean(parsed.feed.get("title", "")) or url)
         before = len(articles)
         for entry in parsed.entries:
             ts = entry.get("published_parsed") or entry.get("updated_parsed")
