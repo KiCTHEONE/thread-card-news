@@ -30,7 +30,6 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-flash-latest' }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
       ACCOUNT_HANDLE: ${{ vars.ACCOUNT_HANDLE || '@politics_hourly' }}
       CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}

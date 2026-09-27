@@ -24,7 +24,6 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-5")
 LLM_MODEL = GEMINI_MODEL if LLM_PROVIDER == "gemini" else CLAUDE_MODEL
 
-THREADS_USER_ID = os.environ.get("THREADS_USER_ID", "")
 THREADS_ACCESS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN", "")
 
 ACCOUNT_HANDLE = os.environ.get("ACCOUNT_HANDLE", "@politics_hourly")

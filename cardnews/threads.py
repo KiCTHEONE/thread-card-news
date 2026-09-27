@@ -11,9 +11,18 @@ TEXT_LIMIT = 500
 
 
 class ThreadsClient:
-    def __init__(self, user_id, access_token):
-        self.user_id = user_id
+    def __init__(self, access_token):
         self.token = access_token
+        # 사용자 ID는 토큰에서 직접 조회한다 (앱 ID를 잘못 넣는 실수 방지)
+        resp = requests.get(f"{API}/me", params={"fields": "id,username", "access_token": access_token}, timeout=30)
+        if not resp.ok:
+            raise RuntimeError(
+                "Threads 토큰이 올바르지 않습니다. 앱 시크릿이 아니라 User Token Generator에서 "
+                f"발급한 액세스 토큰을 THREADS_ACCESS_TOKEN에 넣으세요. ({resp.status_code}): {resp.text[:300]}"
+            )
+        me = resp.json()
+        self.user_id = me["id"]
+        print(f"[threads] @{me.get('username')} 계정으로 게시합니다.")
 
     def _post(self, path, **params):
         resp = requests.post(f"{API}/{path}", data={**params, "access_token": self.token}, timeout=60)

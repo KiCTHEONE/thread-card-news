@@ -129,10 +129,10 @@ def cmd_post(args):
         print(json.dumps({"image_urls": urls, "text": manifest["text"], "reply": manifest["reply"]},
                          ensure_ascii=False, indent=1))
         return
-    if not (config.THREADS_USER_ID and config.THREADS_ACCESS_TOKEN):
-        sys.exit("THREADS_USER_ID / THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
+    if not config.THREADS_ACCESS_TOKEN:
+        sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
 
-    client = ThreadsClient(config.THREADS_USER_ID, config.THREADS_ACCESS_TOKEN)
+    client = ThreadsClient(config.THREADS_ACCESS_TOKEN)
     post_id = client.post_carousel(urls, manifest["text"])
     print(f"[post] 게시 완료: {post_id}")
     if manifest["reply"]:

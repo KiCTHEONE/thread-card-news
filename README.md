@@ -14,12 +14,13 @@ GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다
 ## 설정
 
 ### 1. Threads API 토큰 발급
-1. [Meta for Developers](https://developers.facebook.com/)에서 앱을 만들고 **Threads API** 사용 사례를 추가합니다.
-2. 권한 `threads_basic`, `threads_content_publish`를 요청하고, 올릴 계정을 테스터로 추가합니다.
-3. 액세스 토큰을 발급받아 **장기 토큰(60일)** 으로 교환합니다.
-4. `GET https://graph.threads.net/v1.0/me?fields=id&access_token=...` 으로 사용자 ID를 확인합니다.
+1. [Meta for Developers](https://developers.facebook.com/)에서 앱을 만들고 **Threads API 액세스** 사용 사례를 추가합니다.
+2. 사용 사례 **맞춤 설정 → 권한**에서 `threads_basic`, `threads_content_publish`를 추가합니다.
+3. **맞춤 설정 → 설정**의 *Threads 테스터 추가*에 올릴 계정을 넣고, threads.net **설정 → 계정 → 웹사이트 권한 → 초대**에서 수락합니다.
+4. 같은 화면의 **User Token Generator**에서 계정 옆 *Generate Access Token*을 눌러 토큰을 복사합니다.
+   이 값이 `THREADS_ACCESS_TOKEN`입니다. 사용자 ID는 토큰으로 자동 조회하므로 따로 넣지 않습니다.
 
-> 장기 토큰은 60일 뒤 만료됩니다. 만료 전에
+> 토큰은 60일 뒤 만료됩니다. 만료 전에
 > `GET https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=<토큰>`
 > 으로 갱신하고 Secret을 업데이트하세요.
 
@@ -34,8 +35,7 @@ GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다
 |---|---|---|
 | Secret | `GEMINI_API_KEY` | Gemini API 키 (기본) |
 | Secret | `ANTHROPIC_API_KEY` | Claude API 키 (`LLM_PROVIDER=claude`일 때만) |
-| Secret | `THREADS_USER_ID` | Threads 사용자 ID |
-| Secret | `THREADS_ACCESS_TOKEN` | Threads 장기 액세스 토큰 |
+| Secret | `THREADS_ACCESS_TOKEN` | User Token Generator에서 발급한 Threads 액세스 토큰 |
 | Variable (선택) | `ACCOUNT_HANDLE` | 카드 하단에 표시할 계정명 (예: `@my_politics`) |
 | Variable (선택) | `LLM_PROVIDER` | `gemini`(기본) 또는 `claude` |
 | Variable (선택) | `GEMINI_MODEL` | 기본값 `gemini-flash-latest` |
