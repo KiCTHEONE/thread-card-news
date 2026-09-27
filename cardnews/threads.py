@@ -49,7 +49,15 @@ class ThreadsClient:
 
     def _publish(self, container_id):
         self._wait_ready(container_id)
-        return self._post(f"{self.user_id}/threads_publish", creation_id=container_id)
+        # 상태가 FINISHED여도 바로 게시하면 "Media Not Found"(code 24)가 가끔 나서 기다렸다가 재시도한다
+        for attempt in range(4):
+            time.sleep(10 * (attempt + 1))
+            try:
+                return self._post(f"{self.user_id}/threads_publish", creation_id=container_id)
+            except RuntimeError as e:
+                if '"code":24' not in str(e) or attempt == 3:
+                    raise
+                print(f"[threads] 게시 준비 중, 재시도합니다 ({attempt + 1}/3)")
 
     def post_carousel(self, image_urls, text):
         if not 2 <= len(image_urls) <= 20:
