@@ -9,7 +9,7 @@ RSS 수집 (최근 90분, 이미 쓴 기사 제외)
   → Threads 캐러셀 게시 + 출처 링크 답글
 ```
 
-GitHub Actions(`.github/workflows/hourly.yml`)가 30분마다(정각, 30분) 실행합니다. GitHub 예약 실행은 몇 분 늦게 시작될 수 있습니다.
+cron-job.org(무료)가 30분마다 GitHub API로 `.github/workflows/hourly.yml`을 실행합니다 (아래 '실행 예약' 참고).
 
 ## 설정
 
@@ -57,6 +57,19 @@ Threads는 게시할 때 이미지를 복사해 가므로 원본이 지워져도
 ### 5. 테스트
 Actions 탭 → **Hourly politics card news** → *Run workflow* 에서 `dry_run`을 켜고 실행하면
 게시 없이 카드만 만들어 Artifacts(`cards`)로 받아볼 수 있습니다.
+
+## 실행 예약 (cron-job.org)
+1. GitHub → 프로필 Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
+   - Repository access: Only select repositories → `thread-card-news`
+   - Repository permissions → **Actions: Read and write**
+2. cron-job.org → CREATE CRONJOB
+   - URL: `https://api.github.com/repos/KiCTHEONE/thread-card-news/actions/workflows/hourly.yml/dispatches`
+   - Schedule: 매시 0분·30분, 시간대 Asia/Seoul
+   - Advanced → Request method `POST`, Headers:
+     `Accept: application/vnd.github+json`, `Authorization: Bearer <토큰>`, `X-GitHub-Api-Version: 2022-11-28`
+   - Request body: `{"ref":"claude/vigilant-franklin-yn812e","inputs":{"dry_run":"false"}}`
+   - 성공 응답은 `204`
+3. 토큰 만료일 전에 새 토큰으로 바꿔 넣으세요.
 
 ## 로컬 실행
 

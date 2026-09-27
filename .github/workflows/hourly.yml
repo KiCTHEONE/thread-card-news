@@ -1,8 +1,8 @@
 name: Politics card news
 
+# 30분마다 외부 알람(cron-job.org)이 workflow_dispatch로 실행한다.
+# GitHub 자체 schedule은 이 저장소에서 실행되지 않아 쓰지 않는다 (둘 다 쓰면 중복 게시 위험).
 on:
-  schedule:
-    - cron: "0,30 * * * *"   # 30분마다 (정각, 30분). GitHub 사정으로 몇 분 늦게 시작될 수 있음
   workflow_dispatch:
     inputs:
       dry_run:
