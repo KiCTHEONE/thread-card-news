@@ -142,7 +142,7 @@ def cmd_build(args):
             return kept
 
         per_feed = []
-        sites = BROADCASTER_DOMAINS if policy == "broadcast" else ()
+        sites = BROADCASTER_DOMAINS + topic.get("extra_domains", []) if policy == "broadcast" else ()
         # 방송사 도메인 검색과 일반 검색(지역 방송사 등 도메인 목록 밖 방송사용)을 함께 쓴다
         for site_feed, plain_feed in zip(google_news_feeds(topic["search_queries"], lookback, sites),
                                          google_news_feeds(topic["search_queries"], lookback)):
