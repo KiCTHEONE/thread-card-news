@@ -13,6 +13,7 @@ from datetime import datetime
 
 from . import config
 from .fetch import Article, fetch_articles
+from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
@@ -88,6 +89,9 @@ def build_post(data, articles, now, out_dir):
 
 
 def cmd_build(args):
+    key_name = "GEMINI_API_KEY" if config.LLM_PROVIDER == "gemini" else "ANTHROPIC_API_KEY"
+    if not os.environ.get(key_name):
+        sys.exit(f"{key_name} 가 설정되지 않았습니다. GitHub Settings → Secrets and variables → Actions 에 추가하세요.")
     now = datetime.now(KST)
     state = load_state(args.state_dir)
     articles = fetch_articles(config.FEEDS, config.LOOKBACK_MINUTES, state["seen"], config.MAX_ARTICLES)
@@ -109,8 +113,11 @@ def cmd_build(args):
 def cmd_post(args):
     with open(os.path.join(args.dir, "post.json"), encoding="utf-8") as f:
         manifest = json.load(f)
-    base = args.base_url.rstrip("/")
-    urls = [f"{base}/{name}" for name in manifest["images"]]
+    if args.base_url:
+        base = args.base_url.rstrip("/")
+        urls = [f"{base}/{name}" for name in manifest["images"]]
+    else:
+        urls = [upload_image(os.path.join(args.dir, name)) for name in manifest["images"]]
     if args.dry_run:
         print(json.dumps({"image_urls": urls, "text": manifest["text"], "reply": manifest["reply"]},
                          ensure_ascii=False, indent=1))
@@ -181,7 +188,7 @@ def main():
     p = sub.add_parser("post", help="생성된 카드를 Threads에 게시")
     p.add_argument("--state-dir", default="assets")
     p.add_argument("--dir", required=True)
-    p.add_argument("--base-url", required=True, help="이미지가 공개된 URL 경로")
+    p.add_argument("--base-url", default="", help="이미지가 공개된 URL 경로. 비우면 무료 이미지 호스팅에 업로드")
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_post)
 

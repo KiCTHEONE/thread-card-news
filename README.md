@@ -40,13 +40,17 @@ GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다
 | Variable (선택) | `LLM_PROVIDER` | `gemini`(기본) 또는 `claude` |
 | Variable (선택) | `GEMINI_MODEL` | 기본값 `gemini-flash-latest` |
 | Variable (선택) | `CLAUDE_MODEL` | 기본값 `claude-opus-5` |
-| Variable (선택) | `IMAGE_BASE_URL` | 이미지를 다른 곳에 올릴 때의 공개 URL |
+| Variable (선택) | `IMAGE_HOST` | `github`로 두면 public 저장소의 raw URL 사용 (기본은 무료 호스팅) |
+| Variable (선택) | `IMAGE_BASE_URL` | 이미지를 직접 호스팅할 때의 공개 URL |
 
 ### 4. 이미지 호스팅
-Threads API는 이미지를 **공개 URL**로만 받습니다. 기본 설정은 카드 이미지를 `assets` 브랜치에 올리고
-`raw.githubusercontent.com` 주소를 넘기므로 **저장소가 public이어야 합니다.**
-`assets` 브랜치는 매번 커밋 하나로 강제 푸시되어(최신 카드 + `state.json`만 보관) 저장소 용량이 늘지 않습니다.
-저장소를 private로 두려면 이미지를 S3/Cloudflare R2 등에 올리고 `IMAGE_BASE_URL`을 지정하세요.
+Threads API는 이미지를 **공개 URL**로만 받습니다.
+- **기본값**: 무료 임시 호스팅(litterbox, 72시간 보관)에 올려 그 주소를 넘깁니다. 저장소가 private이어도 동작합니다.
+  Threads는 게시할 때 이미지를 복사해 가므로 원본이 지워져도 게시물은 그대로입니다.
+- **public 저장소라면**: Variable `IMAGE_HOST=github` 로 설정하면 `assets` 브랜치의 `raw.githubusercontent.com` 주소를 씁니다.
+- **직접 호스팅(S3, R2 등)**: `IMAGE_BASE_URL` 에 공개 URL 경로를 지정하세요.
+
+`assets` 브랜치에는 `state.json`(이미 올린 기사 목록)이 커밋 하나로 강제 푸시되어 저장소 용량이 늘지 않습니다.
 
 ### 5. 테스트
 Actions 탭 → **Hourly politics card news** → *Run workflow* 에서 `dry_run`을 켜고 실행하면
