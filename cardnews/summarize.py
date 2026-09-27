@@ -56,7 +56,8 @@ def _format_articles(articles):
     lines = []
     for i, a in enumerate(articles, 1):
         t = datetime.fromtimestamp(a.published, KST).strftime("%H:%M")
-        lines.append(f"[{i}] ({a.source}, {t}) {a.title}\n    {a.summary}")
+        mark = ", 해외·영문" if getattr(a, "foreign", False) else ""
+        lines.append(f"[{i}] ({a.source}{mark}, {t}) {a.title}\n    {a.summary}")
     return "\n".join(lines)
 
 
@@ -124,7 +125,9 @@ TOPIC_INSTRUCTIONS = """
 - 주제와 관련 없는 기사는 무시한다.
 - 중요한 이슈부터 카드로 나눈다. 여러 분야(선거, 특검, 군사·안보, 정당 등)에 소식이 있으면 한 분야에 몰지 말고 고르게 담는다. 관련 내용이 적으면 2장까지 줄여도 된다.
 - 선관위·정당·후보 등 각 주체의 입장은 기사에 나온 대로만 전한다.
-- 의혹이나 주장(예: 부정선거 주장)은 사실처럼 쓰지 말고 누가 주장했는지 밝힌다. 수사·재판 중인 사안은 결론을 단정하지 않는다."""
+- 의혹이나 주장(예: 부정선거 주장)은 사실처럼 쓰지 말고 누가 주장했는지 밝힌다. 수사·재판 중인 사안은 결론을 단정하지 않는다.
+- '해외·영문' 기사는 한국어로 옮겨 요약하고, 본문에 해외 보도임을 밝힌다 (예: "로이터에 따르면"). 고유명사는 국내에서 통용되는 한국어 표기를 쓴다.
+- 여론조사는 기사에 나온 조사기관·수치만 그대로 쓰고, 수치를 계산하거나 바꾸지 않는다."""
 
 
 def summarize(articles, provider, model, now=None, topic=None, recent_titles=()):

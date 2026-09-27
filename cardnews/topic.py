@@ -23,12 +23,15 @@ def load_topic():
     return topic
 
 
-def google_news_feeds(queries, lookback_minutes, sites=()):
+LOCALES = {"ko": "hl=ko&gl=KR&ceid=KR:ko", "en": "hl=en-US&gl=US&ceid=US:en"}
+
+
+def google_news_feeds(queries, lookback_minutes, sites=(), lang="ko"):
     """구글 뉴스 검색 RSS 주소. when: 으로 최근 기사만, sites가 있으면 해당 도메인에서만 찾는다."""
     days = max(1, -(-lookback_minutes // 1440))
     site_filter = f" ({' OR '.join('site:' + d for d in sites)})" if sites else ""
     return [
-        f"https://news.google.com/rss/search?q={quote(q + site_filter + f' when:{days}d')}&hl=ko&gl=KR&ceid=KR:ko"
+        f"https://news.google.com/rss/search?q={quote(q + site_filter + f' when:{days}d')}&{LOCALES[lang]}"
         for q in queries
     ]
 

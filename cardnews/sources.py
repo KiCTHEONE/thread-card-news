@@ -61,3 +61,23 @@ def display_name(source):
         if name == domain or name.endswith("." + domain):
             return label
     return source
+
+
+# 해외 기사로 쓸 언론사 (구글 뉴스 표기 → 카드에 쓸 한국어 이름)
+FOREIGN_OUTLETS = [
+    ("reuters", "로이터"), ("associated press", "AP"), ("ap news", "AP"), ("bbc", "BBC"), ("cnn", "CNN"),
+    ("new york times", "뉴욕타임스"), ("wall street journal", "월스트리트저널"), ("wsj", "월스트리트저널"),
+    ("washington post", "워싱턴포스트"), ("bloomberg", "블룸버그"), ("financial times", "파이낸셜타임스"),
+    ("the guardian", "가디언"), ("al jazeera", "알자지라"), ("nhk", "NHK"), ("kyodo", "교도통신"),
+    ("nikkei", "닛케이"), ("npr", "NPR"), ("politico", "폴리티코"), ("the economist", "이코노미스트"),
+    ("france 24", "프랑스24"), ("deutsche welle", "DW"), ("voice of america", "VOA"), ("voa", "VOA"),
+]
+
+
+def foreign_outlet_name(source):
+    """허용된 해외 언론사면 한국어 이름을, 아니면 None을 돌려준다."""
+    name = " ".join(source.lower().split())
+    for token, label in FOREIGN_OUTLETS:
+        if token in name:
+            return label
+    return None

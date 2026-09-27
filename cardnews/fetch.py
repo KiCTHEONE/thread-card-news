@@ -35,6 +35,7 @@ class Article:
     link: str
     source: str
     published: float  # unix time
+    foreign: bool = False  # 해외 언론 영문 기사 (요약할 때 한국어로 옮김)
 
 
 def _clean(text: str) -> str:

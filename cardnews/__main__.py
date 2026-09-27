@@ -19,7 +19,7 @@ from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
 from .similar import is_repeat
-from .sources import BROADCASTER_DOMAINS, source_allowed
+from .sources import BROADCASTER_DOMAINS, foreign_outlet_name, source_allowed
 from .topic import google_news_feeds, load_topic, matches
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
 from .token_store import current_token, refresh_if_needed
@@ -192,12 +192,22 @@ def cmd_build(args):
 
         per_feed = []
         sites = BROADCASTER_DOMAINS + topic.get("extra_domains", []) if policy == "broadcast" else ()
-        # 방송사 도메인 검색과 일반 검색(지역 방송사 등 도메인 목록 밖 방송사용)을 함께 쓴다
-        for site_feed, plain_feed in zip(google_news_feeds(topic["search_queries"], lookback, sites),
-                                         google_news_feeds(topic["search_queries"], lookback)):
-            feeds = [site_feed, plain_feed] if sites else [plain_feed]
-            per_feed.append(dedupe(allowed(fetch_articles(feeds, lookback, state["seen"], 500)))[:per_query])
-        # 검색어별 결과를 번갈아 섞어야 기사 수 상한에서 뒤쪽 주제(예: 정당)가 잘려 나가지 않는다
+        # 방송사 정책이면 방송사·허용 언론사 도메인에서만 검색한다 (검색 횟수를 줄여 구글 차단을 피함)
+        for feed in google_news_feeds(topic["search_queries"], lookback, sites):
+            per_feed.append(dedupe(allowed(fetch_articles([feed], lookback, state["seen"], 500)))[:per_query])
+
+        # 해외 언론 영문 기사 (허용된 해외 언론사만, 요약 단계에서 한국어로 옮김)
+        foreign = topic.get("foreign", {})
+        if foreign.get("enabled"):
+            f_limit = int(foreign.get("per_query_limit", 3))
+            for feed in google_news_feeds(foreign["queries"], lookback, lang="en"):
+                kept = []
+                for a in fetch_articles([feed], lookback, state["seen"], 500):
+                    name = foreign_outlet_name(a.source)
+                    if name:
+                        a.source, a.foreign = name, True
+                        kept.append(a)
+                per_feed.append(dedupe(kept)[:f_limit])
         searched = [a for group in zip_longest(*per_feed) for a in group if a]
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
         general = allowed([a for a in general if matches(a, topic["keywords"])])[:per_query]
