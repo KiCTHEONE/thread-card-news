@@ -241,10 +241,12 @@ def cmd_build(args):
     for c in data["cards"]:
         if c not in kept:
             print(f"  = 이미 다룬 소식이라 카드 제외: {c['title']}")
+    removed = len(data["cards"]) - len(kept)
     data["cards"] = kept
-    # 본문 항목도 이미 다룬 소식이면 뺀다 (모두 빠지면 카드 제목으로 채운다)
     intro, bullets = _split_bullets(data["thread_text"])
-    bullets = [b for b in bullets if not is_repeat(b, previous, 0.6)] or [c["title"] for c in kept]
+    if removed:
+        # 카드를 뺐으면 본문 항목은 남은 카드 본문 첫 문장으로 다시 만든다 (본문과 카드가 어긋나지 않게)
+        bullets = [re.split(r"(?<=[.다])\s", c["body"].strip(), maxsplit=1)[0] for c in kept]
     data["thread_text"] = intro + " " + " ".join(f"• {b}" for b in bullets)
     if not data["worth_posting"] or len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")

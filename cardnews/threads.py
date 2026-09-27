@@ -25,10 +25,17 @@ class ThreadsClient:
         print(f"[threads] @{me.get('username')} 계정으로 게시합니다.")
 
     def _post(self, path, **params):
-        resp = requests.post(f"{API}/{path}", data={**params, "access_token": self.token}, timeout=60)
-        if not resp.ok:
-            raise RuntimeError(f"Threads API {path} 실패 ({resp.status_code}): {resp.text}")
-        return resp.json()["id"]
+        # 쓰레드 서버 일시 오류(5xx, is_transient)는 잠시 기다렸다 다시 시도한다
+        for attempt in range(4):
+            resp = requests.post(f"{API}/{path}", data={**params, "access_token": self.token}, timeout=60)
+            if resp.ok:
+                return resp.json()["id"]
+            transient = resp.status_code >= 500 or '"is_transient":true' in resp.text
+            if not transient or attempt == 3:
+                raise RuntimeError(f"Threads API {path} 실패 ({resp.status_code}): {resp.text}")
+            wait = 15 * (attempt + 1)
+            print(f"[threads] 일시 오류({resp.status_code}), {wait}초 후 재시도")
+            time.sleep(wait)
 
     def _wait_ready(self, container_id, timeout=300):
         deadline = time.time() + timeout
