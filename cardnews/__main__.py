@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 from . import config
-from .fetch import Article, fetch_articles
+from .fetch import Article, dedupe, fetch_articles
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
@@ -110,10 +110,14 @@ def cmd_build(args):
     if topic:
         # 수동 실행에서 LOOKBACK_MINUTES를 따로 주지 않으면 주제 설정값을 쓴다
         lookback = int(os.environ.get("LOOKBACK_MINUTES_OVERRIDE") or topic.get("lookback_minutes", 1440))
-        feeds = google_news_feeds(topic["search_queries"], lookback) + config.FEEDS
         print(f"[build] 주제 모드: {topic['label']} (최근 {lookback}분)")
-        articles = fetch_articles(feeds, lookback, state["seen"], 500)
-        articles = [a for a in articles if matches(a, topic["keywords"])][: config.MAX_ARTICLES]
+        # 주제 검색 결과는 그대로 쓰고(무관한 기사는 AI가 걸러냄), 일반 정치 피드는 키워드로 거른다
+        searched = fetch_articles(google_news_feeds(topic["search_queries"], lookback), lookback, state["seen"], 500)
+        general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
+        general = [a for a in general if matches(a, topic["keywords"])]
+        articles = dedupe(searched + general)[: config.MAX_ARTICLES]
+        for a in articles:
+            print(f"  - ({a.source}) {a.title}")
         min_articles = int(topic.get("min_articles", 2))
     else:
         articles = fetch_articles(config.FEEDS, config.LOOKBACK_MINUTES, state["seen"], config.MAX_ARTICLES)

@@ -80,3 +80,15 @@ def fetch_articles(feeds, lookback_minutes, seen_links, max_articles):
         print(f"[fetch] {source}: 전체 {len(parsed.entries)}건 중 새 기사 {len(articles) - before}건")
     articles.sort(key=lambda a: a.published, reverse=True)
     return articles[:max_articles]
+
+
+def dedupe(articles):
+    """여러 번 수집한 기사 목록에서 링크·제목이 겹치는 기사를 뺀다."""
+    seen, out = set(), []
+    for a in articles:
+        key = _normalize_title(a.title)
+        if a.link in seen or key in seen:
+            continue
+        seen.update((a.link, key))
+        out.append(a)
+    return out
