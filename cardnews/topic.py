@@ -14,7 +14,13 @@ def load_topic():
         return None
     with open(TOPIC_FILE, encoding="utf-8") as f:
         topic = json.load(f)
-    return topic if topic.get("enabled") else None
+    if not topic.get("enabled"):
+        return None
+    # categories가 {분류: [검색어...]} 형태면 검색어 목록을 합쳐 쓴다 (겹치는 검색어는 한 번만)
+    if isinstance(topic.get("categories"), dict):
+        queries = [q for terms in topic["categories"].values() for q in terms]
+        topic["search_queries"] = list(dict.fromkeys(queries + topic.get("search_queries", [])))
+    return topic
 
 
 def google_news_feeds(queries, lookback_minutes, sites=()):

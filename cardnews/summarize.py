@@ -133,7 +133,7 @@ def summarize(articles, provider, model, now=None, topic=None):
     if topic:
         user_content += TOPIC_INSTRUCTIONS.format(description=topic["description"])
         if topic.get("categories"):
-            user_content += "\n- cards[].tag는 다음 중 하나만 쓴다: " + ", ".join(topic["categories"])
+            user_content += "\n- cards[].tag는 다음 분류 중 하나만 쓴다: " + ", ".join(topic["categories"])
     if provider == "gemini":
         text = _call_gemini(user_content, model)
     elif provider == "claude":

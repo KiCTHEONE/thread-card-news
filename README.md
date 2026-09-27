@@ -70,7 +70,8 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 
 ## 주제 모드 (`topic.json`)
 `enabled: true`이면 정해진 주제의 기사만 모아 올립니다.
-- `search_queries`: 구글 뉴스에서 검색할 문구 (검색어마다 최대 `per_query_limit`건, 정치 RSS 피드와 함께 수집)
+- `categories`: `{분류: [검색어...]}`. 분류 이름은 카드의 분류 표시로, 검색어는 구글 뉴스 검색에 쓰임
+- `search_queries`: (선택) 분류 외에 추가로 검색할 문구 (검색어마다 최대 `per_query_limit`건, 정치 RSS 피드와 함께 수집)
 - `keywords`: 일반 정치 RSS 기사 중 이 단어가 하나라도 있는 기사만 사용
 - `label`: 카드 표지와 본문 머리말에 들어갈 이름
 - `source_policy`: `broadcast`면 방송사(공영·지상파·지역방송·종편·보도채널·라디오) 기사만 사용 (`cardnews/sources.py`), `all`이면 모두 허용
