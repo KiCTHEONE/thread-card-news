@@ -57,19 +57,43 @@ def set_output(name, value):
     print(f"{name}={value}")
 
 
-def _format_bullets(text):
-    # 모델이 항목을 한 줄에 이어 쓰는 경우가 있어 '•' 앞에서 줄을 바꾼다
-    text = re.sub(r"\s*•\s*", "\n• ", text.strip())
-    return re.sub(r"\n{2,}", "\n", text).strip()
+def _split_bullets(text):
+    """'•' 항목 목록으로 나눈다. 첫 항목 앞의 문장은 도입문으로 돌려준다."""
+    parts = [p.strip() for p in re.split(r"\s*•\s*", text.strip())]
+    intro, bullets = parts[0], [p for p in parts[1:] if p]
+    return intro, bullets
 
 
 def compose_text(data, now, topic=None):
+    """쓰레드 본문 양식:
+
+    [한카뉴 이슈 브리핑]
+    도입 한 줄
+
+    • 항목
+
+    • 항목
+
+    - 한카뉴
+    """
+    brand = (topic or {}).get("brand", "한카뉴")
     label = topic["label"] if topic else "정치 브리핑"
-    header = f"[{now:%m.%d} {slot_time(now):%H:%M} {label}]"
-    tag_name = topic["tag"] if topic else data["topic_tag"]
-    tag = "#" + tag_name.lstrip("#").replace(" ", "")
-    body_limit = TEXT_LIMIT - len(header) - len(tag) - 4
-    return f"{header}\n{truncate(_format_bullets(data['thread_text']), body_limit)}\n\n{tag}"
+    header = f"[{brand} {label}]"
+    footer = f"- {brand}"
+    intro, bullets = _split_bullets(data["thread_text"])
+
+    def build(items):
+        body = "\n\n".join(f"• {b}" for b in items)
+        return f"{header}\n{intro}\n\n{body}\n\n{footer}" if items else f"{header}\n{intro}\n\n{footer}"
+
+    # 500자를 넘으면 문장 중간에서 자르지 않고 뒤쪽 항목부터 뺀다
+    while len(bullets) > 1 and len(build(bullets)) > TEXT_LIMIT:
+        bullets = bullets[:-1]
+    return truncate(build(bullets))
+
+
+def topic_tag(data, topic=None):
+    return ((topic or {}).get("tag") or data.get("topic_tag", "")).lstrip("#").replace(" ", "")
 
 
 def compose_reply(data, articles):
@@ -107,6 +131,7 @@ def build_post(data, articles, now, out_dir, topic=None):
         "created_at": now.isoformat(),
         "images": [os.path.basename(p) for p in images],
         "text": compose_text(data, now, topic),
+        "topic_tag": topic_tag(data, topic),
         "reply": compose_reply(data, articles),
         # 카드에 실제로 쓴 기사만 '사용함'으로 기록해, 이번에 빠진 기사는 다음 회차에 다시 후보가 된다
         "pending_links": used_links,
@@ -188,14 +213,15 @@ def cmd_post(args):
     else:
         urls = [upload_image(os.path.join(args.dir, name)) for name in manifest["images"]]
     if args.dry_run:
-        print(json.dumps({"image_urls": urls, "text": manifest["text"], "reply": manifest["reply"]},
+        print(json.dumps({"image_urls": urls, "text": manifest["text"], "topic_tag": manifest.get("topic_tag"),
+                          "reply": manifest["reply"]},
                          ensure_ascii=False, indent=1))
         return
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
 
     client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
-    post_id = client.post_carousel(urls, manifest["text"])
+    post_id = client.post_carousel(urls, manifest["text"], manifest.get("topic_tag", ""))
     print(f"[post] 게시 완료: {post_id}")
     if manifest["reply"]:
         try:

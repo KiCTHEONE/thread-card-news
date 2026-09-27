@@ -72,5 +72,6 @@
   ],
   "tag": "정치뉴스",
   "lookback_minutes": 180,
-  "min_articles": 2
+  "min_articles": 2,
+  "brand": "한카뉴"
 }

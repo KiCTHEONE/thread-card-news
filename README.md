@@ -77,7 +77,8 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 - `source_policy`: `broadcast`면 방송사(공영·지상파·지역방송·종편·보도채널·라디오) 기사만 사용 (`cardnews/sources.py`), `all`이면 모두 허용
 - `extra_sources`: 방송사 외에 추가로 허용할 언론사 이름 (예: 연합뉴스, 뉴스1)
 - `extra_domains`: 방송사 사이트 검색에 함께 넣을 추가 언론사 도메인
-- `tag`: 쓰레드 주제 태그 (예: `재선거` → `#재선거`)
+- `brand`: 본문 머리말·맺음말에 쓰는 이름 (`[한카뉴 이슈 브리핑]` … `- 한카뉴`)
+- `tag`: 쓰레드 주제 태그 (본문에 넣지 않고 게시물 주제 태그로 붙임) (예: `재선거` → `#재선거`)
 - `lookback_minutes`: 몇 분 전 기사까지 볼지 (이미 올린 기사는 자동 제외)
 
 일반 정치 브리핑으로 돌아가려면 `enabled`를 `false`로 바꾸세요.

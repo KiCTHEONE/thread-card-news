@@ -59,7 +59,7 @@ class ThreadsClient:
                     raise
                 print(f"[threads] 게시 준비 중, 재시도합니다 ({attempt + 1}/3)")
 
-    def post_carousel(self, image_urls, text):
+    def post_carousel(self, image_urls, text, topic_tag=""):
         if not 2 <= len(image_urls) <= 20:
             raise ValueError("캐러셀은 이미지 2~20장이 필요합니다.")
         children = [
@@ -68,12 +68,16 @@ class ThreadsClient:
         ]
         for child in children:
             self._wait_ready(child)
-        carousel = self._post(
-            f"{self.user_id}/threads",
-            media_type="CAROUSEL",
-            children=",".join(children),
-            text=truncate(text),
-        )
+        params = {"media_type": "CAROUSEL", "children": ",".join(children), "text": truncate(text)}
+        if topic_tag:
+            # 본문에 해시태그를 넣지 않고 게시물 주제 태그로 붙인다
+            try:
+                carousel = self._post(f"{self.user_id}/threads", **params, topic_tag=topic_tag)
+            except RuntimeError as e:
+                print(f"[threads] 주제 태그 없이 다시 시도합니다: {e}")
+                carousel = self._post(f"{self.user_id}/threads", **params)
+        else:
+            carousel = self._post(f"{self.user_id}/threads", **params)
         return self._publish(carousel)
 
     def reply_text(self, reply_to_id, text):
