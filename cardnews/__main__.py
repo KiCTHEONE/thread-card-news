@@ -96,7 +96,7 @@ def cmd_build(args):
         print("[build] 기사가 부족해 이번 회차는 건너뜁니다.")
         set_output("post_dir", "")
         return
-    data = summarize(articles, config.CLAUDE_MODEL, now)
+    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now)
     if not data["worth_posting"] or len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")
         set_output("post_dir", "")

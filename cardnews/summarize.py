@@ -1,8 +1,7 @@
-"""Claude로 한 시간치 정치 기사를 카드뉴스용으로 종합한다."""
+"""AI(Gemini 또는 Claude)로 한 시간치 정치 기사를 카드뉴스용으로 종합한다."""
 import json
+import time
 from datetime import datetime, timezone, timedelta
-
-import anthropic
 
 KST = timezone(timedelta(hours=9))
 
@@ -61,9 +60,35 @@ def _format_articles(articles):
     return "\n".join(lines)
 
 
-def summarize(articles, model, now=None):
-    now = now or datetime.now(KST)
-    client = anthropic.Anthropic()
+def _call_gemini(user_content, model):
+    from google import genai
+    from google.genai import errors, types
+
+    client = genai.Client()  # GEMINI_API_KEY 환경변수 사용
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT,
+        response_mime_type="application/json",
+        response_json_schema=SCHEMA,
+    )
+    # 무료 등급은 일시적인 한도 초과(429)나 과부하(503)가 잦아 몇 번 재시도한다
+    for attempt in range(4):
+        try:
+            response = client.models.generate_content(model=model, contents=user_content, config=config)
+            if not response.text:
+                raise RuntimeError(f"Gemini 응답이 비어 있습니다: {response.candidates}")
+            return response.text
+        except errors.APIError as e:
+            if e.code not in (429, 500, 503) or attempt == 3:
+                raise
+            wait = 20 * (attempt + 1)
+            print(f"[summarize] Gemini {e.code} 오류, {wait}초 후 재시도")
+            time.sleep(wait)
+
+
+def _call_claude(user_content, model):
+    import anthropic
+
+    client = anthropic.Anthropic()  # ANTHROPIC_API_KEY 환경변수 사용
     response = client.beta.messages.create(
         model=model,
         max_tokens=16000,
@@ -71,16 +96,25 @@ def summarize(articles, model, now=None):
         fallbacks="default",
         system=SYSTEM_PROMPT,
         output_config={"effort": "medium", "format": {"type": "json_schema", "schema": SCHEMA}},
-        messages=[{
-            "role": "user",
-            "content": f"현재 시각: {now:%Y-%m-%d %H:%M} (KST)\n\n기사 목록:\n{_format_articles(articles)}",
-        }],
+        messages=[{"role": "user", "content": user_content}],
     )
     if response.stop_reason == "refusal":
         raise RuntimeError(f"요약 요청이 거절되었습니다: {response.stop_details}")
     if response.stop_reason == "max_tokens":
         raise RuntimeError("요약 응답이 max_tokens에서 잘렸습니다.")
-    text = next(b.text for b in response.content if b.type == "text")
+    return next(b.text for b in response.content if b.type == "text")
+
+
+def summarize(articles, provider, model, now=None):
+    now = now or datetime.now(KST)
+    user_content = f"현재 시각: {now:%Y-%m-%d %H:%M} (KST)\n\n기사 목록:\n{_format_articles(articles)}"
+    if provider == "gemini":
+        text = _call_gemini(user_content, model)
+    elif provider == "claude":
+        text = _call_claude(user_content, model)
+    else:
+        raise ValueError(f"알 수 없는 LLM_PROVIDER: {provider} (gemini 또는 claude)")
+    print(f"[summarize] {provider} / {model} 사용")
     data = json.loads(text)
 
     # 모델이 규칙을 넘겨도 카드/쓰레드 제약은 코드에서 보장한다

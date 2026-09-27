@@ -18,7 +18,11 @@ LOOKBACK_MINUTES = int(os.environ.get("LOOKBACK_MINUTES", "90"))
 MIN_ARTICLES = int(os.environ.get("MIN_ARTICLES", "3"))
 MAX_ARTICLES = int(os.environ.get("MAX_ARTICLES", "40"))
 
+# 요약에 쓸 AI: "gemini"(기본, 무료 등급 있음) 또는 "claude"
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "gemini").strip().lower()
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-5")
+LLM_MODEL = GEMINI_MODEL if LLM_PROVIDER == "gemini" else CLAUDE_MODEL
 
 THREADS_USER_ID = os.environ.get("THREADS_USER_ID", "")
 THREADS_ACCESS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN", "")
