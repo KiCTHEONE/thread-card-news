@@ -17,6 +17,7 @@ from .fetch import Article, dedupe, fetch_articles, resolve_google_links
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
+from .sources import source_allowed
 from .topic import google_news_feeds, load_topic, matches
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
 from .token_store import current_token, refresh_if_needed
@@ -126,21 +127,24 @@ def cmd_build(args):
         # 수동 실행에서 LOOKBACK_MINUTES를 따로 주지 않으면 주제 설정값을 쓴다
         lookback = int(os.environ.get("LOOKBACK_MINUTES_OVERRIDE") or topic.get("lookback_minutes", 1440))
         print(f"[build] 주제 모드: {topic['label']} (최근 {lookback}분)")
-        # 주제 검색 결과는 그대로 쓰고(무관한 기사는 AI가 걸러냄), 일반 정치 피드는 키워드로 거른다
+        # 주제 검색 결과는 출처만 거르고(무관한 기사는 AI가 걸러냄), 일반 정치 피드는 키워드로도 거른다
         # 검색어마다 따로 모아 개수를 제한해야 기사가 많은 주제(예: 특검)가 다른 주제를 밀어내지 않는다
         per_query = int(topic.get("per_query_limit", 8))
+        policy = topic.get("source_policy", "all")
+        extra = topic.get("extra_sources", [])
+
+        def allowed(items):
+            kept = [a for a in items if source_allowed(a.source, policy, extra)]
+            for a in items:
+                if a not in kept:
+                    print(f"  x 출처 제외: ({a.source}) {a.title}")
+            return kept
+
         searched = []
         for feed in google_news_feeds(topic["search_queries"], lookback):
-            searched += fetch_articles([feed], lookback, state["seen"], per_query)
+            searched += allowed(fetch_articles([feed], lookback, state["seen"], 500))[:per_query]
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
-        general = [a for a in general if matches(a, topic["keywords"])][:per_query]
-        allowed = topic.get("allowed_sources")
-        if allowed:
-            # 구글 뉴스 검색에는 스팸·출처 불명 사이트도 섞이므로 등록된 언론사 기사만 쓴다
-            dropped = [a for a in searched if a.source not in allowed]
-            searched = [a for a in searched if a.source in allowed]
-            for a in dropped:
-                print(f"  x 허용 목록에 없는 출처 제외: ({a.source}) {a.title}")
+        general = allowed([a for a in general if matches(a, topic["keywords"])])[:per_query]
         articles = dedupe(searched + general)[: config.MAX_ARTICLES]
         for a in articles:
             print(f"  - ({a.source}) {a.title}")
