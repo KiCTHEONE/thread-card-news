@@ -18,6 +18,7 @@ from .fetch import Article, dedupe, fetch_articles, resolve_google_links
 from .hosting import upload_image
 from .render import render_all
 from .summarize import KST, summarize
+from .similar import is_repeat
 from .sources import BROADCASTER_DOMAINS, source_allowed
 from .topic import google_news_feeds, load_topic, matches
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
@@ -25,11 +26,27 @@ from .token_store import current_token, refresh_if_needed
 
 STATE_FILE = "state.json"
 STATE_RETENTION_DAYS = 3
+REPEAT_WINDOW_HOURS = 24   # 이 시간 안에 올린 소식과 같은 사건이면 다시 올리지 않는다
+REPEAT_THRESHOLD = 0.3     # 제목 유사도 (cardnews/similar.py)
 
 
 def slot_time(now):
     """실행 시각을 30분 단위로 내림 (예약 실행이 몇 분 늦어도 23:30처럼 표시)."""
     return now.replace(minute=now.minute // 30 * 30, second=0, microsecond=0)
+
+
+def recent_titles(state):
+    """최근 REPEAT_WINDOW_HOURS 동안 올린 기사 제목과 카드 제목."""
+    cutoff = time.time() - REPEAT_WINDOW_HOURS * 3600
+    titles = [h["title"] for h in state.get("history", []) if h["t"] >= cutoff]
+    for p in state.get("posts", []):
+        try:
+            posted = datetime.fromisoformat(p["created_at"]).timestamp()
+        except (KeyError, ValueError):
+            continue
+        if posted >= cutoff:
+            titles += p.get("card_titles", [])
+    return list(dict.fromkeys(titles))
 
 
 def load_state(state_dir):
@@ -44,6 +61,7 @@ def save_state(state_dir, state):
     cutoff = time.time() - STATE_RETENTION_DAYS * 86400
     state["seen"] = {k: v for k, v in state["seen"].items() if v >= cutoff}
     state["posts"] = state["posts"][-200:]
+    state["history"] = [h for h in state.get("history", []) if h["t"] >= time.time() - REPEAT_WINDOW_HOURS * 3600]
     os.makedirs(state_dir, exist_ok=True)
     with open(os.path.join(state_dir, STATE_FILE), "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
@@ -137,6 +155,7 @@ def build_post(data, articles, now, out_dir, topic=None):
         # 카드에 실제로 쓴 기사만 '사용함'으로 기록해, 이번에 빠진 기사는 다음 회차에 다시 후보가 된다
         "pending_links": used_links,
         "card_titles": [c["title"] for c in data["cards"]],
+        "used_titles": [articles[i - 1].title for i in sorted(used)],
         "summary": data,
     }
     with open(os.path.join(out_dir, "post.json"), "w", encoding="utf-8") as f:
@@ -189,13 +208,27 @@ def cmd_build(args):
     else:
         articles = fetch_articles(config.FEEDS, config.LOOKBACK_MINUTES, state["seen"], config.MAX_ARTICLES)
         min_articles = config.MIN_ARTICLES
+    previous = recent_titles(state)
+    fresh = [a for a in articles if not is_repeat(a.title, previous, REPEAT_THRESHOLD)]
+    for a in articles:
+        if a not in fresh:
+            print(f"  = 이미 다룬 소식 제외: ({a.source}) {a.title}")
+    articles = fresh
     print(f"[build] 새 기사 {len(articles)}건")
     if len(articles) < min_articles:
         print("[build] 기사가 부족해 이번 회차는 건너뜁니다.")
         set_output("post_dir", "")
         return
-    recent = [t for p in state["posts"][-6:] for t in p.get("card_titles", [])]
-    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic, recent)
+    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic, previous[-40:])
+    kept = [c for c in data["cards"] if not is_repeat(c["title"], previous, REPEAT_THRESHOLD)]
+    for c in data["cards"]:
+        if c not in kept:
+            print(f"  = 이미 다룬 소식이라 카드 제외: {c['title']}")
+    data["cards"] = kept
+    # 본문 항목도 이미 다룬 소식이면 뺀다 (모두 빠지면 카드 제목으로 채운다)
+    intro, bullets = _split_bullets(data["thread_text"])
+    bullets = [b for b in bullets if not is_repeat(b, previous, 0.6)] or [c["title"] for c in kept]
+    data["thread_text"] = intro + " " + " ".join(f"• {b}" for b in bullets)
     if not data["worth_posting"] or len(data["cards"]) < 1:
         print("[build] 올릴 만한 내용이 없다고 판단해 건너뜁니다.")
         set_output("post_dir", "")
@@ -243,6 +276,8 @@ def cmd_post(args):
     state = load_state(args.state_dir)
     now = time.time()
     state["seen"].update({link: now for link in manifest["pending_links"]})
+    state.setdefault("history", []).extend(
+        {"t": now, "title": t} for t in manifest.get("used_titles", []) + manifest.get("card_titles", []))
     state["posts"].append({"id": post_id, "created_at": manifest["created_at"],
                            "card_titles": manifest.get("card_titles", [])})
     save_state(args.state_dir, state)

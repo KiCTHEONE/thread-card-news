@@ -81,6 +81,12 @@ python -m cardnews build --state-dir assets --out output/run   # 수집 + 요약
 python -m cardnews post --state-dir assets --dir output/run --base-url https://... --dry-run
 ```
 
+## 중복 방지
+- 한 번 카드에 쓴 기사는 다시 쓰지 않습니다 (`state.json`의 `seen`).
+- 최근 24시간 동안 올린 기사·카드 제목과 **같은 사건**(제목 유사도 0.3 이상, `cardnews/similar.py`)으로 보이는
+  기사는 AI에 넘기기 전에 빼고, AI가 만든 카드·본문 항목도 한 번 더 걸러냅니다. 새 사건이 없으면 그 회차는 건너뜁니다.
+- 기준은 `cardnews/__main__.py`의 `REPEAT_WINDOW_HOURS`, `REPEAT_THRESHOLD`로 조정합니다.
+
 ## 주제 모드 (`topic.json`)
 `enabled: true`이면 정해진 주제의 기사만 모아 올립니다.
 - `categories`: `{분류: [검색어...]}`. 분류 이름은 카드의 분류 표시로, 검색어는 구글 뉴스 검색에 쓰임

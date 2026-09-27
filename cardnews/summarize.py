@@ -136,8 +136,9 @@ def summarize(articles, provider, model, now=None, topic=None, recent_titles=())
             user_content += "\n- cards[].tag는 다음 분류 중 하나만 쓴다: " + ", ".join(topic["categories"])
     if recent_titles:
         user_content += (
-            "\n\n[최근 게시한 카드 제목]\n" + "\n".join(f"- {t}" for t in recent_titles)
-            + "\n위 내용과 같은 소식은 새로운 전개가 있을 때만 다시 다루고, 되도록 다른 소식을 고른다."
+            "\n\n[최근 24시간 동안 이미 올린 소식]\n" + "\n".join(f"- {t}" for t in recent_titles)
+            + "\n위 소식과 같은 사건은 다루지 않는다. 남은 기사 중 다른 사건만 카드로 만들고,"
+            " 다룰 만한 새 사건이 없으면 worth_posting을 false로 한다."
         )
     if provider == "gemini":
         text = _call_gemini(user_content, model)
