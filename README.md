@@ -62,7 +62,6 @@ Actions 탭 → **Hourly politics card news** → *Run workflow* 에서 `dry_run
 
 ```bash
 pip install -r requirements.txt
-sudo apt-get install fonts-noto-cjk   # 한글 폰트 (또는 CARD_FONT_PATH 지정)
 
 python -m cardnews demo --out output/demo                 # API 없이 카드 디자인 확인
 python -m cardnews build --state-dir assets --out output/run   # 수집 + 요약 + 렌더링
@@ -83,7 +82,8 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 ## 커스터마이징
 - **뉴스 소스**: `cardnews/config.py`의 `DEFAULT_FEEDS` 또는 `FEEDS` 환경변수(쉼표 구분)
 - **요약 톤·분량**: `cardnews/summarize.py`의 `SYSTEM_PROMPT`
-- **카드 디자인**: `cardnews/render.py`의 색상 상수와 `render_cover` / `render_card`
+- **카드 디자인**: `cardnews/render.py`의 색상 상수와 `render_cover`(표지) / `render_card`(이슈) / `render_outro`(마무리)
+- **폰트**: `fonts/`의 Pretendard (SIL OFL 1.1, `fonts/Pretendard-LICENSE.txt`)
 - **수집 범위**: `LOOKBACK_MINUTES`(기본 90), `MIN_ARTICLES`(기본 3, 이보다 적으면 건너뜀)
 
 ## 참고
