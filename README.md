@@ -9,7 +9,7 @@ RSS 수집 (최근 90분, 이미 쓴 기사 제외)
   → Threads 캐러셀 게시 + 출처 링크 답글
 ```
 
-GitHub Actions(`.github/workflows/hourly.yml`)가 매시 7분에 실행합니다.
+GitHub Actions(`.github/workflows/hourly.yml`)가 30분마다(매시 7분, 37분) 실행합니다.
 
 ## 설정
 
@@ -71,8 +71,8 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 
 ## 주제 모드 (`topic.json`)
 `enabled: true`이면 정해진 주제의 기사만 모아 올립니다.
-- `search_queries`: 구글 뉴스에서 검색할 문구 (정치 RSS 피드와 함께 수집)
-- `keywords`: 제목·요약에 이 단어가 하나라도 있는 기사만 사용
+- `search_queries`: 구글 뉴스에서 검색할 문구 (검색어마다 최대 `per_query_limit`건, 정치 RSS 피드와 함께 수집)
+- `keywords`: 일반 정치 RSS 기사 중 이 단어가 하나라도 있는 기사만 사용
 - `label`: 카드 표지와 본문 머리말에 들어갈 이름
 - `tag`: 쓰레드 주제 태그 (예: `재선거` → `#재선거`)
 - `lookback_minutes`: 몇 분 전 기사까지 볼지 (이미 올린 기사는 자동 제외)
@@ -91,4 +91,4 @@ python -m cardnews post --state-dir assets --dir output/run --base-url https://.
 - Gemini 무료 등급은 한도 초과(429)·과부하(503) 시 최대 3번 재시도하고, 그래도 실패하면 그 회차는 실패로 남습니다.
   무료 등급에서는 입력 내용이 구글 서비스 개선에 쓰일 수 있습니다(공개 기사만 보냅니다).
 - Claude를 쓰는 경우 요청이 거절되면 `fallbacks: "default"`(서버 측 폴백)로 다른 모델이 이어받습니다.
-- Threads API 게시 한도는 24시간 250건이며, 이 워크플로는 하루 최대 48건(본문+답글)을 사용합니다.
+- Threads API 게시 한도는 24시간 250건이며, 이 워크플로는 하루 최대 96건(30분마다 본문+답글)을 사용합니다.

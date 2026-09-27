@@ -25,6 +25,11 @@ STATE_FILE = "state.json"
 STATE_RETENTION_DAYS = 3
 
 
+def slot_time(now):
+    """실행 시각을 30분 단위로 내림 (예약 실행이 몇 분 늦어도 23:30처럼 표시)."""
+    return now.replace(minute=now.minute // 30 * 30, second=0, microsecond=0)
+
+
 def load_state(state_dir):
     path = os.path.join(state_dir, STATE_FILE)
     if not os.path.exists(path):
@@ -58,7 +63,7 @@ def _format_bullets(text):
 
 def compose_text(data, now, topic=None):
     label = topic["label"] if topic else "정치 브리핑"
-    header = f"[{now:%m.%d} {now:%H}시 {label}]"
+    header = f"[{now:%m.%d} {slot_time(now):%H:%M} {label}]"
     tag_name = topic["tag"] if topic else data["topic_tag"]
     tag = "#" + tag_name.lstrip("#").replace(" ", "")
     body_limit = TEXT_LIMIT - len(header) - len(tag) - 4
@@ -112,9 +117,13 @@ def cmd_build(args):
         lookback = int(os.environ.get("LOOKBACK_MINUTES_OVERRIDE") or topic.get("lookback_minutes", 1440))
         print(f"[build] 주제 모드: {topic['label']} (최근 {lookback}분)")
         # 주제 검색 결과는 그대로 쓰고(무관한 기사는 AI가 걸러냄), 일반 정치 피드는 키워드로 거른다
-        searched = fetch_articles(google_news_feeds(topic["search_queries"], lookback), lookback, state["seen"], 500)
+        # 검색어마다 따로 모아 개수를 제한해야 기사가 많은 주제(예: 특검)가 다른 주제를 밀어내지 않는다
+        per_query = int(topic.get("per_query_limit", 8))
+        searched = []
+        for feed in google_news_feeds(topic["search_queries"], lookback):
+            searched += fetch_articles([feed], lookback, state["seen"], per_query)
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
-        general = [a for a in general if matches(a, topic["keywords"])]
+        general = [a for a in general if matches(a, topic["keywords"])][:per_query]
         articles = dedupe(searched + general)[: config.MAX_ARTICLES]
         for a in articles:
             print(f"  - ({a.source}) {a.title}")

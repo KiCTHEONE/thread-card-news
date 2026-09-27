@@ -1,8 +1,8 @@
-name: Hourly politics card news
+name: Politics card news
 
 on:
   schedule:
-    - cron: "7 * * * *"   # 매시 7분 (UTC 기준이지만 매시간이라 무관)
+    - cron: "7,37 * * * *"   # 30분마다 (매시 7분, 37분)
   workflow_dispatch:
     inputs:
       dry_run:
@@ -18,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: hourly-card-news
+  group: card-news
   cancel-in-progress: false
 
 jobs:

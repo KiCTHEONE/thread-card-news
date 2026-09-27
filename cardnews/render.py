@@ -87,7 +87,8 @@ def _footer(draw, fonts, handle, page):
 def render_cover(data, now, fonts, handle, total, label="정치 브리핑"):
     img = Image.new("RGB", (W, H), BG_COVER)
     d = ImageDraw.Draw(img)
-    label = f"{now:%m.%d} ({WEEKDAYS[now.weekday()]}) {now:%H}시 {label}"
+    slot = now.replace(minute=now.minute // 30 * 30)
+    label = f"{now:%m.%d} ({WEEKDAYS[now.weekday()]}) {slot:%H:%M} {label}"
     d.rectangle((PAD, PAD, PAD + 12, PAD + 52), fill=ACCENT)
     d.text((PAD + 32, PAD + 4), label, font=fonts.get(38, bold=True), fill=ACCENT)
 
