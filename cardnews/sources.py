@@ -76,6 +76,7 @@ FOREIGN_OUTLETS = [
     ("abc news", "ABC뉴스"), ("cbs news", "CBS뉴스"), ("nbc news", "NBC뉴스"), ("axios", "악시오스"),
     ("time", "타임"), ("the diplomat", "디플로맷"), ("south china morning post", "SCMP"),
     ("japan times", "재팬타임스"), ("nk news", "NK뉴스"), ("afp", "AFP"), ("the hill", "더힐"),
+    ("cnbc", "CNBC"), ("marketwatch", "마켓워치"), ("barron's", "배런스"),
 ]
 
 

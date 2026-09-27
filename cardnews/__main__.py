@@ -243,6 +243,14 @@ def cmd_build(args):
     for c in data["cards"]:
         if c not in kept:
             print(f"  = 이미 다룬 소식이라 카드 제외: {c['title']}")
+    for c in kept:  # 잘못된 기사 번호가 섞여도 멈추지 않게
+        c["source_ids"] = [i for i in c["source_ids"] if 1 <= i <= len(articles)]
+    if topic:
+        # 정치 우선: 경제 카드는 뒤로 보내고 개수를 제한한다
+        econ_max = int(topic.get("max_economy_cards", 2))
+        politics = [c for c in kept if c["tag"] != "경제"]
+        economy = [c for c in kept if c["tag"] == "경제"][:econ_max]
+        kept = politics + economy
     removed = len(data["cards"]) - len(kept)
     data["cards"] = kept
     intro, bullets = _split_bullets(data["thread_text"])
