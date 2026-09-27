@@ -98,6 +98,8 @@ def compose_reply(data, articles):
 
 def build_post(data, articles, now, out_dir, topic=None):
     used = {i for card in data["cards"] for i in card["source_ids"]}
+    # 중복 판정은 수집 당시 주소(구글 뉴스 주소)로 하므로 원문 주소로 바꾸기 전에 적어 둔다
+    used_links = [articles[i - 1].link for i in sorted(used)]
     resolve_google_links([articles[i - 1] for i in sorted(used)])
     label = topic["label"] if topic else "정치 브리핑"
     images = render_all(data, articles, now, out_dir, config.ACCOUNT_HANDLE, config.FONT_PATH, label)
@@ -107,7 +109,7 @@ def build_post(data, articles, now, out_dir, topic=None):
         "text": compose_text(data, now, topic),
         "reply": compose_reply(data, articles),
         # 카드에 실제로 쓴 기사만 '사용함'으로 기록해, 이번에 빠진 기사는 다음 회차에 다시 후보가 된다
-        "pending_links": [articles[i - 1].link for i in sorted(used)],
+        "pending_links": used_links,
         "card_titles": [c["title"] for c in data["cards"]],
         "summary": data,
     }
