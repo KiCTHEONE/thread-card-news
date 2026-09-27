@@ -211,7 +211,14 @@ def cmd_build(args):
         searched = [a for group in zip_longest(*per_feed) for a in group if a]
         general = fetch_articles(config.FEEDS, lookback, state["seen"], 500)
         general = allowed([a for a in general if matches(a, topic["keywords"])])[:per_query]
-        articles = dedupe(searched + general)[: int(topic.get("max_articles", config.MAX_ARTICLES))]
+        excluded = topic.get("exclude_keywords", [])
+        candidates = dedupe(searched + general)
+        # 스포츠·연예 등 정치와 무관한 기사는 AI에 넘기기 전에 뺀다
+        articles = [a for a in candidates if not any(k in a.title for k in excluded)]
+        for a in candidates:
+            if a not in articles:
+                print(f"  x 무관한 기사 제외: ({a.source}) {a.title}")
+        articles = articles[: int(topic.get("max_articles", config.MAX_ARTICLES))]
         for a in articles:
             print(f"  - ({a.source}) {a.title}")
         min_articles = int(topic.get("min_articles", 2))
