@@ -1,0 +1,42 @@
+name: Reply to a Threads post
+
+# 출처 답글이 실패한 게시물 등에 수동으로 답글을 달 때 쓴다.
+on:
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: "답글을 달 게시물 ID"
+        required: true
+        type: string
+      text:
+        description: "답글 내용 (줄바꿈은 \\n)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore token from assets branch
+        run: |
+          mkdir -p assets
+          if git fetch --depth=1 origin assets 2>/dev/null; then
+            git show FETCH_HEAD:token.json > assets/token.json 2>/dev/null || rm -f assets/token.json
+          fi
+      - name: Reply
+        env:
+          POST_ID: ${{ inputs.post_id }}
+          TEXT: ${{ inputs.text }}
+        run: python -m cardnews reply --state-dir assets --post-id "$POST_ID" --text "$TEXT"

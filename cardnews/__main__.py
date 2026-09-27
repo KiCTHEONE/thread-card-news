@@ -255,6 +255,15 @@ def cmd_refresh_token(args):
     set_output("changed", "true" if changed else "false")
 
 
+def cmd_reply(args):
+    """이미 올라간 게시물에 답글을 단다 (출처 답글이 실패했을 때 수동으로 보완)."""
+    if not config.THREADS_ACCESS_TOKEN:
+        sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
+    client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
+    reply_id = client.reply_text(args.post_id, args.text.replace("\\n", "\n"))
+    print(f"[reply] 답글 완료: {reply_id}")
+
+
 def cmd_demo(args):
     now = datetime.now(KST)
     t = time.time()
@@ -310,6 +319,12 @@ def main():
     r.add_argument("--state-dir", default="assets")
     r.add_argument("--force", action="store_true")
     r.set_defaults(func=cmd_refresh_token)
+
+    rp = sub.add_parser("reply", help="게시물에 답글 달기")
+    rp.add_argument("--state-dir", default="assets")
+    rp.add_argument("--post-id", required=True)
+    rp.add_argument("--text", required=True)
+    rp.set_defaults(func=cmd_reply)
 
     d = sub.add_parser("demo", help="샘플 데이터로 카드 이미지만 렌더링")
     d.add_argument("--out", default="output/demo")
