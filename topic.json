@@ -193,5 +193,15 @@
     "football",
     "soccer"
   ],
-  "max_economy_cards": 2
+  "max_economy_cards": 2,
+  "instagram": {
+    "enabled": true,
+    "hashtags": [
+      "korea",
+      "대한민국",
+      "정치뉴스",
+      "경제뉴스",
+      "재선거"
+    ]
+  }
 }

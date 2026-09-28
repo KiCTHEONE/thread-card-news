@@ -25,6 +25,7 @@ CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-5")
 LLM_MODEL = GEMINI_MODEL if LLM_PROVIDER == "gemini" else CLAUDE_MODEL
 
 THREADS_ACCESS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN", "")
+INSTAGRAM_ACCESS_TOKEN = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
 
 ACCOUNT_HANDLE = os.environ.get("ACCOUNT_HANDLE", "@koreacardnews")
 FONT_PATH = os.environ.get("CARD_FONT_PATH", "")

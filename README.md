@@ -81,6 +81,15 @@ python -m cardnews build --state-dir assets --out output/run   # 수집 + 요약
 python -m cardnews post --state-dir assets --dir output/run --base-url https://... --dry-run
 ```
 
+## 인스타그램 동시 게시 (선택)
+Secret `INSTAGRAM_ACCESS_TOKEN`이 있으면 같은 카드를 인스타그램 캐러셀로도 올립니다.
+- 캡션: 쓰레드 본문 + 출처(이름·제목) + `topic.json`의 `instagram.hashtags`
+- 인스타그램 **프로페셔널 계정**(비즈니스/크리에이터) 필요. Meta 앱에 *Instagram API* 사용 사례를 추가하고
+  *Instagram 로그인을 통한 API 설정*에서 계정을 연결해 액세스 토큰을 발급합니다 (권한: `instagram_business_basic`,
+  `instagram_business_content_publish`).
+- 토큰은 쓰레드와 마찬가지로 일주일마다 자동 갱신됩니다 (`token_instagram.json`).
+- 쓰레드·인스타그램 중 한쪽이 실패해도 다른 쪽은 올라갑니다.
+
 ## 중복 방지
 - 한 번 카드에 쓴 기사는 다시 쓰지 않습니다 (`state.json`의 `seen`).
 - 최근 24시간 동안 올린 기사·카드 제목과 **같은 사건**(제목 유사도 0.3 이상, `cardnews/similar.py`)으로 보이는

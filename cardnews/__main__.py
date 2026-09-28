@@ -21,6 +21,7 @@ from .summarize import KST, summarize
 from .similar import is_repeat
 from .sources import BROADCASTER_DOMAINS, foreign_outlet_name, source_allowed
 from .topic import google_news_feeds, load_topic, matches
+from .instagram import InstagramClient, compose_caption
 from .threads import TEXT_LIMIT, ThreadsClient, truncate
 from .token_store import current_token, refresh_if_needed
 
@@ -156,6 +157,10 @@ def build_post(data, articles, now, out_dir, topic=None):
         "pending_links": used_links,
         "card_titles": [c["title"] for c in data["cards"]],
         "used_titles": [articles[i - 1].title for i in sorted(used)],
+        "instagram_caption": compose_caption(
+            compose_text(data, now, topic),
+            [f"{articles[i - 1].source} · {articles[i - 1].title}" for i in sorted(used)][:8],
+            ((topic or {}).get("instagram") or {}).get("hashtags", [])),
         "summary": data,
     }
     with open(os.path.join(out_dir, "post.json"), "w", encoding="utf-8") as f:
@@ -300,18 +305,36 @@ def cmd_post(args):
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
 
-    client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
-    post_id = client.post_carousel(urls, manifest["text"], manifest.get("topic_tag", ""))
-    print(f"[post] 게시 완료: {post_id}")
-    if manifest["reply"]:
-        post_reply(client, post_id, manifest)
+    # 쓰레드와 인스타그램은 서로 독립적으로 올린다 (한쪽이 실패해도 다른 쪽은 올라가게)
+    post_id, threads_error = None, None
+    try:
+        client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
+        post_id = client.post_carousel(urls, manifest["text"], manifest.get("topic_tag", ""))
+        print(f"[post] 쓰레드 게시 완료: {post_id}")
+        if manifest["reply"]:
+            post_reply(client, post_id, manifest)
+    except Exception as e:
+        threads_error = e
+        print(f"[post] 쓰레드 게시 실패: {e}")
+
+    ig_id = None
+    if config.INSTAGRAM_ACCESS_TOKEN and manifest.get("instagram_caption"):
+        try:
+            ig = InstagramClient(current_token(args.state_dir, config.INSTAGRAM_ACCESS_TOKEN, "instagram"))
+            ig_id = ig.post_carousel(urls, manifest["instagram_caption"])
+            print(f"[post] 인스타그램 게시 완료: {ig_id}")
+        except Exception as e:
+            print(f"[post] 인스타그램 게시 실패: {e}")
+
+    if not post_id and not ig_id:
+        raise RuntimeError(f"게시 실패: {threads_error}")
 
     state = load_state(args.state_dir)
     now = time.time()
     state["seen"].update({link: now for link in manifest["pending_links"]})
     state.setdefault("history", []).extend(
         {"t": now, "title": t} for t in manifest.get("used_titles", []) + manifest.get("card_titles", []))
-    state["posts"].append({"id": post_id, "created_at": manifest["created_at"],
+    state["posts"].append({"id": post_id, "instagram_id": ig_id, "created_at": manifest["created_at"],
                            "card_titles": manifest.get("card_titles", [])})
     save_state(args.state_dir, state)
 
@@ -320,6 +343,8 @@ def cmd_refresh_token(args):
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
     changed = refresh_if_needed(args.state_dir, config.THREADS_ACCESS_TOKEN, force=args.force)
+    if config.INSTAGRAM_ACCESS_TOKEN:
+        changed = refresh_if_needed(args.state_dir, config.INSTAGRAM_ACCESS_TOKEN, args.force, "instagram") or changed
     set_output("changed", "true" if changed else "false")
 
 
