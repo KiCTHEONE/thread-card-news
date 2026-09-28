@@ -87,7 +87,7 @@ Secret `INSTAGRAM_ACCESS_TOKEN`이 있으면 같은 카드를 인스타그램 �
 - 인스타그램 **프로페셔널 계정**(비즈니스/크리에이터) 필요. Meta 앱에 *Instagram API* 사용 사례를 추가하고
   *Instagram 로그인을 통한 API 설정*에서 계정을 연결해 액세스 토큰을 발급합니다 (권한: `instagram_business_basic`,
   `instagram_business_content_publish`).
-- 인스타그램은 `instagram.min_interval_minutes`(기본 60분) 간격으로만 올립니다. 쓰레드는 30분마다 그대로입니다.
+- 인스타그램은 `instagram.min_interval_minutes`(기본 60분) 간격으로만 올립니다. 쓰레드도 `post_interval_minutes`(기본 60분) 간격으로 올립니다.
 - 토큰은 쓰레드와 마찬가지로 일주일마다 자동 갱신됩니다 (`token_instagram.json`).
 - 쓰레드·인스타그램 중 한쪽이 실패해도 다른 쪽은 올라갑니다.
 
@@ -129,4 +129,4 @@ Secret `INSTAGRAM_ACCESS_TOKEN`이 있으면 같은 카드를 인스타그램 �
 - Gemini 무료 등급은 한도 초과(429)·과부하(503) 시 최대 3번 재시도하고, 그래도 실패하면 그 회차는 실패로 남습니다.
   무료 등급에서는 입력 내용이 구글 서비스 개선에 쓰일 수 있습니다(공개 기사만 보냅니다).
 - Claude를 쓰는 경우 요청이 거절되면 `fallbacks: "default"`(서버 측 폴백)로 다른 모델이 이어받습니다.
-- Threads API 게시 한도는 24시간 250건이며, 이 워크플로는 하루 최대 96건(30분마다 본문+답글)을 사용합니다.
+- Threads API 게시 한도는 24시간 250건이며, 이 워크플로는 하루 최대 48건(1시간마다 본문+답글)을 사용합니다.

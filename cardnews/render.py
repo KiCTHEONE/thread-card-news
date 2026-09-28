@@ -288,7 +288,7 @@ def render_outro(fonts, handle, total, label="정치 브리핑"):
 
     cy = H // 2 - 160
     d.text((W // 2, cy), "핵심만 빠르게,", font=fonts.get(84, "extrabold"), fill=ON_DARK, anchor="mm")
-    d.text((W // 2, cy + 110), "30분마다 정리합니다", font=fonts.get(84, "extrabold"), fill=ON_DARK, anchor="mm")
+    d.text((W // 2, cy + 110), "1시간마다 공유합니다", font=fonts.get(84, "extrabold"), fill=ON_DARK, anchor="mm")
 
     f = fonts.get(40, "bold")
     text = f"팔로우  {handle}"
