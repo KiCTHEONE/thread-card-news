@@ -329,7 +329,9 @@ def cmd_post(args):
     post_id, threads_error = None, None
     try:
         client = ThreadsClient(current_token(args.state_dir, config.THREADS_ACCESS_TOKEN))
-        post_id = client.post_carousel(urls, manifest["text"], manifest.get("topic_tag", ""))
+        # 주제 태그(topic_tag)를 붙이면 쓰레드가 매번 "action is blocked"(2207051)로 거절해서 보내지 않는다.
+        # 차단된 요청을 반복하면 계정 제재로 이어질 수 있다.
+        post_id = client.post_carousel(urls, manifest["text"])
         print(f"[post] 쓰레드 게시 완료: {post_id}")
         if manifest["reply"]:
             post_reply(client, post_id, manifest)
