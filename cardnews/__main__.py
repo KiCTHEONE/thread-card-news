@@ -161,6 +161,7 @@ def build_post(data, articles, now, out_dir, topic=None):
             compose_text(data, now, topic),
             [f"{articles[i - 1].source} · {articles[i - 1].title}" for i in sorted(used)][:8],
             ((topic or {}).get("instagram") or {}).get("hashtags", [])),
+        "instagram_interval_minutes": ((topic or {}).get("instagram") or {}).get("min_interval_minutes", 60),
         "summary": data,
     }
     with open(os.path.join(out_dir, "post.json"), "w", encoding="utf-8") as f:
@@ -318,7 +319,14 @@ def cmd_post(args):
         print(f"[post] 쓰레드 게시 실패: {e}")
 
     ig_id = None
-    if config.INSTAGRAM_ACCESS_TOKEN and manifest.get("instagram_caption"):
+    ig_state = load_state(args.state_dir)
+    ig_interval = int(manifest.get("instagram_interval_minutes", 60))
+    since_last = (time.time() - ig_state.get("last_instagram_at", 0)) / 60
+    # 예약 실행이 몇 분씩 밀려도 한 시간 주기가 유지되도록 5분 여유를 둔다
+    ig_due = since_last >= ig_interval - 5
+    if config.INSTAGRAM_ACCESS_TOKEN and manifest.get("instagram_caption") and not ig_due:
+        print(f"[post] 인스타그램은 {ig_interval}분 간격이라 이번엔 건너뜁니다 (마지막 게시 {since_last:.0f}분 전).")
+    if config.INSTAGRAM_ACCESS_TOKEN and manifest.get("instagram_caption") and ig_due:
         try:
             ig = InstagramClient(current_token(args.state_dir, config.INSTAGRAM_ACCESS_TOKEN, "instagram"))
             ig_id = ig.post_carousel(urls, manifest["instagram_caption"])
@@ -334,6 +342,8 @@ def cmd_post(args):
     state["seen"].update({link: now for link in manifest["pending_links"]})
     state.setdefault("history", []).extend(
         {"t": now, "title": t} for t in manifest.get("used_titles", []) + manifest.get("card_titles", []))
+    if ig_id:
+        state["last_instagram_at"] = now
     state["posts"].append({"id": post_id, "instagram_id": ig_id, "created_at": manifest["created_at"],
                            "card_titles": manifest.get("card_titles", [])})
     save_state(args.state_dir, state)

@@ -87,6 +87,7 @@ Secret `INSTAGRAM_ACCESS_TOKEN`이 있으면 같은 카드를 인스타그램 �
 - 인스타그램 **프로페셔널 계정**(비즈니스/크리에이터) 필요. Meta 앱에 *Instagram API* 사용 사례를 추가하고
   *Instagram 로그인을 통한 API 설정*에서 계정을 연결해 액세스 토큰을 발급합니다 (권한: `instagram_business_basic`,
   `instagram_business_content_publish`).
+- 인스타그램은 `instagram.min_interval_minutes`(기본 60분) 간격으로만 올립니다. 쓰레드는 30분마다 그대로입니다.
 - 토큰은 쓰레드와 마찬가지로 일주일마다 자동 갱신됩니다 (`token_instagram.json`).
 - 쓰레드·인스타그램 중 한쪽이 실패해도 다른 쪽은 올라갑니다.
 
