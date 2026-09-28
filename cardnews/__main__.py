@@ -50,6 +50,16 @@ def recent_titles(state):
     return list(dict.fromkeys(titles))
 
 
+def _last_threads_post_time(state):
+    for p in reversed(state.get("posts", [])):
+        if p.get("id"):
+            try:
+                return datetime.fromisoformat(p["created_at"]).timestamp()
+            except (KeyError, ValueError):
+                return 0
+    return 0
+
+
 def load_state(state_dir):
     path = os.path.join(state_dir, STATE_FILE)
     if not os.path.exists(path):
@@ -179,6 +189,15 @@ def cmd_build(args):
         print("[build] 테스트: 이미 올린 기사 기록을 무시합니다.")
         state["seen"] = {}
     topic = load_topic()
+    interval = int((topic or {}).get("post_interval_minutes", 0))
+    if interval and not os.environ.get("LOOKBACK_MINUTES_OVERRIDE"):
+        last = _last_threads_post_time(state)
+        since = (time.time() - last) / 60
+        # 예약 실행이 몇 분 밀려도 주기가 유지되도록 5분 여유를 둔다
+        if since < interval - 5:
+            print(f"[build] 게시 간격 {interval}분: 마지막 게시 {since:.0f}분 전이라 이번엔 건너뜁니다.")
+            set_output("post_dir", "")
+            return
     if topic:
         # 수동 실행에서 LOOKBACK_MINUTES를 따로 주지 않으면 주제 설정값을 쓴다
         lookback = int(os.environ.get("LOOKBACK_MINUTES_OVERRIDE") or topic.get("lookback_minutes", 1440))

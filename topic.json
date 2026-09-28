@@ -204,5 +204,6 @@
       "재선거"
     ],
     "min_interval_minutes": 60
-  }
+  },
+  "post_interval_minutes": 60
 }

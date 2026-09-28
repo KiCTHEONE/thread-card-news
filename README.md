@@ -108,6 +108,7 @@ Secret `INSTAGRAM_ACCESS_TOKEN`이 있으면 같은 카드를 인스타그램 �
 - `extra_domains`: 방송사 사이트 검색에 함께 넣을 추가 언론사 도메인
 - `foreign`: 해외 언론 영문 기사 검색 (`queries`, `per_query_limit`). 로이터·AP·BBC 등 `cardnews/sources.py`의 `FOREIGN_OUTLETS`만 쓰고, 요약할 때 한국어로 옮겨 "로이터에 따르면"처럼 출처를 밝힙니다
 - `brand`: 본문 머리말·맺음말에 쓰는 이름 (`[한카뉴 이슈 브리핑]` … `- 한카뉴`)
+- `post_interval_minutes`: 쓰레드 게시 최소 간격 (기본 60분). 실행은 30분마다 되지만 간격이 안 됐으면 바로 건너뜀
 - `max_economy_cards`: 경제 카드 최대 장수 (정치 카드 뒤에 배치, 기본 2)
 - `exclude_keywords`: 제목에 들어 있으면 제외할 말 (스포츠·연예 등)
 - `tag`: 쓰레드 주제 태그 (본문에 넣지 않고 게시물 주제 태그로 붙임) (예: `재선거` → `#재선거`)
