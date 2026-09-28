@@ -349,6 +349,24 @@ def cmd_post(args):
     save_state(args.state_dir, state)
 
 
+def cmd_post_instagram(args):
+    """이미 만든 카드(post.json)를 인스타그램에만 올린다 (수동 실행용)."""
+    if not config.INSTAGRAM_ACCESS_TOKEN:
+        sys.exit("INSTAGRAM_ACCESS_TOKEN 환경변수가 필요합니다.")
+    with open(os.path.join(args.dir, "post.json"), encoding="utf-8") as f:
+        manifest = json.load(f)
+    if not manifest.get("instagram_caption"):
+        sys.exit("이 카드에는 인스타그램 캡션이 없습니다 (주제 모드에서 만든 카드만 가능).")
+    base = args.base_url.rstrip("/")
+    urls = [f"{base}/{name}" for name in manifest["images"]]
+    ig = InstagramClient(current_token(args.state_dir, config.INSTAGRAM_ACCESS_TOKEN, "instagram"))
+    ig_id = ig.post_carousel(urls, manifest["instagram_caption"])
+    print(f"[post] 인스타그램 게시 완료: {ig_id}")
+    state = load_state(args.state_dir)
+    state["last_instagram_at"] = time.time()
+    save_state(args.state_dir, state)
+
+
 def cmd_refresh_token(args):
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
@@ -417,6 +435,12 @@ def main():
     p.add_argument("--base-url", default="", help="이미지가 공개된 URL 경로. 비우면 무료 이미지 호스팅에 업로드")
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_post)
+
+    pi = sub.add_parser("post-instagram", help="만들어 둔 카드를 인스타그램에만 게시")
+    pi.add_argument("--state-dir", default="assets")
+    pi.add_argument("--dir", required=True)
+    pi.add_argument("--base-url", required=True)
+    pi.set_defaults(func=cmd_post_instagram)
 
     r = sub.add_parser("refresh-token", help="Threads 토큰을 필요할 때 갱신")
     r.add_argument("--state-dir", default="assets")

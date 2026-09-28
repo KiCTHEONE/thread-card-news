@@ -1,0 +1,42 @@
+name: Post latest cards to Instagram
+
+# 가장 최근에 만든 카드(assets 브랜치)를 인스타그램에만 올린다. 쓰레드에는 올리지 않는다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: card-news
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+      ASSETS_BRANCH: assets
+      TZ: Asia/Seoul
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore assets branch
+        run: |
+          mkdir -p assets
+          git fetch --depth=1 origin "$ASSETS_BRANCH"
+          git archive FETCH_HEAD | tar -x -C assets
+      - name: Post to Instagram
+        run: |
+          DIR="$(ls -d assets/cards/*/ | sort | tail -1)"
+          DIR="${DIR%/}"
+          echo "카드: $DIR"
+          python -m cardnews post-instagram --state-dir assets --dir "$DIR" \
+            --base-url "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${ASSETS_BRANCH}/${DIR#assets/}"
+      - name: Save state
+        run: ./scripts/push_assets.sh "Record Instagram post"
