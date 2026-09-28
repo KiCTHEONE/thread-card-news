@@ -386,6 +386,24 @@ def cmd_post_instagram(args):
     save_state(args.state_dir, state)
 
 
+def cmd_refresh_outro(args):
+    """만들어 둔 카드의 마지막(마무리) 장을 현재 문구로 다시 그려 새 폴더에 복사한다.
+
+    raw.githubusercontent.com은 같은 주소의 이미지를 몇 분간 캐시하므로 새 폴더 이름으로 만든다.
+    """
+    import shutil
+    from .render import Fonts, render_outro
+    shutil.copytree(args.dir, args.out, dirs_exist_ok=True)
+    with open(os.path.join(args.out, "post.json"), encoding="utf-8") as f:
+        manifest = json.load(f)
+    topic = load_topic()
+    label = topic["label"] if topic else "정치 브리핑"
+    total = len(manifest["images"])
+    img = render_outro(Fonts(config.FONT_PATH), config.ACCOUNT_HANDLE, total, label)
+    img.save(os.path.join(args.out, manifest["images"][-1]), "JPEG", quality=92)
+    print(f"[outro] {args.out}/{manifest['images'][-1]} 다시 그림")
+
+
 def cmd_refresh_token(args):
     if not config.THREADS_ACCESS_TOKEN:
         sys.exit("THREADS_ACCESS_TOKEN 환경변수가 필요합니다.")
@@ -454,6 +472,11 @@ def main():
     p.add_argument("--base-url", default="", help="이미지가 공개된 URL 경로. 비우면 무료 이미지 호스팅에 업로드")
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_post)
+
+    ro = sub.add_parser("refresh-outro", help="카드의 마무리 장을 현재 문구로 다시 그림")
+    ro.add_argument("--dir", required=True)
+    ro.add_argument("--out", required=True)
+    ro.set_defaults(func=cmd_refresh_outro)
 
     pi = sub.add_parser("post-instagram", help="만들어 둔 카드를 인스타그램에만 게시")
     pi.add_argument("--state-dir", default="assets")

@@ -3,6 +3,11 @@ name: Post latest cards to Instagram
 # 가장 최근에 만든 카드(assets 브랜치)를 인스타그램에만 올린다. 쓰레드에는 올리지 않는다.
 on:
   workflow_dispatch:
+    inputs:
+      refresh_outro:
+        description: "마무리 카드를 현재 문구로 다시 그려서 올리기"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -31,11 +36,23 @@ jobs:
           mkdir -p assets
           git fetch --depth=1 origin "$ASSETS_BRANCH"
           git archive FETCH_HEAD | tar -x -C assets
-      - name: Post to Instagram
+      - name: Pick cards
+        id: pick
         run: |
           DIR="$(ls -d assets/cards/*/ | sort | tail -1)"
           DIR="${DIR%/}"
+          if [ "${{ inputs.refresh_outro }}" = "true" ]; then
+            NEW="${DIR}-ig$(date +%H%M)"
+            python -m cardnews refresh-outro --dir "$DIR" --out "$NEW"
+            DIR="$NEW"
+            ./scripts/push_assets.sh "Refresh outro card for Instagram"
+          fi
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "카드: $DIR"
+
+      - name: Post to Instagram
+        run: |
+          DIR="${{ steps.pick.outputs.dir }}"
           python -m cardnews post-instagram --state-dir assets --dir "$DIR" \
             --base-url "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${ASSETS_BRANCH}/${DIR#assets/}"
       - name: Save state
