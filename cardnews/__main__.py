@@ -17,7 +17,7 @@ from . import config
 from .fetch import Article, dedupe, fetch_articles, resolve_google_links
 from .hosting import upload_image
 from .render import render_all
-from .summarize import KST, summarize
+from .summarize import KST, LLMUnavailable, summarize
 from .similar import is_repeat
 from .sources import BROADCASTER_DOMAINS, foreign_outlet_name, source_allowed
 from .topic import google_news_feeds, load_topic, matches
@@ -263,7 +263,12 @@ def cmd_build(args):
         print("[build] 기사가 부족해 이번 회차는 건너뜁니다.")
         set_output("post_dir", "")
         return
-    data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic, previous[-40:])
+    try:
+        data = summarize(articles, config.LLM_PROVIDER, config.LLM_MODEL, now, topic, previous[-40:])
+    except LLMUnavailable as e:
+        print(f"[build] {e}")
+        set_output("post_dir", "")
+        return
     kept = [c for c in data["cards"] if not is_repeat(c["title"], previous, REPEAT_THRESHOLD)]
     for c in data["cards"]:
         if c not in kept:

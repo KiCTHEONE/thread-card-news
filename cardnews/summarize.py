@@ -95,7 +95,7 @@ def _call_gemini(user_content, model):
                 wait = 20 * (attempt + 1)
                 print(f"[summarize] {m} {e.code} 오류, {wait}초 후 재시도")
                 time.sleep(wait)
-    raise RuntimeError("Gemini가 계속 응답하지 않아 이번 회차를 건너뜁니다.")
+    raise LLMUnavailable("Gemini가 계속 응답하지 않아 이번 회차를 건너뜁니다.")
 
 
 def _call_claude(user_content, model):
@@ -131,6 +131,10 @@ TOPIC_INSTRUCTIONS = """
 - '해외·영문' 기사 가운데 이미 올린 소식이 아닌 한국 관련 기사가 있으면 카드 1장 이상은 반드시 해외 보도로 만든다.
 - '해외·영문' 기사는 한국어로 옮겨 요약하고, 본문에 해외 보도임을 밝힌다 (예: "로이터에 따르면"). 고유명사는 국내에서 통용되는 한국어 표기를 쓴다.
 - 여론조사는 기사에 나온 조사기관·수치만 그대로 쓰고, 수치를 계산하거나 바꾸지 않는다."""
+
+
+class LLMUnavailable(RuntimeError):
+    """무료 한도 초과·과부하로 요약을 못 한 경우 (다음 회차에 다시 시도)."""
 
 
 def summarize(articles, provider, model, now=None, topic=None, recent_titles=()):

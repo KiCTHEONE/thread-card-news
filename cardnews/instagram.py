@@ -8,6 +8,8 @@ import time
 
 import requests
 
+from .threads import blocked_hint
+
 API = "https://graph.instagram.com/v21.0"
 CAPTION_LIMIT = 2200
 
@@ -17,6 +19,8 @@ class InstagramClient:
         self.token = access_token
         resp = requests.get(f"{API}/me", params={"fields": "user_id,username", "access_token": access_token},
                             timeout=30)
+        if not resp.ok and blocked_hint(resp.text):
+            raise RuntimeError(f"Instagram: {blocked_hint(resp.text)}({resp.status_code}): {resp.text[:300]}")
         if not resp.ok:
             raise RuntimeError(f"Instagram 토큰이 올바르지 않습니다 ({resp.status_code}): {resp.text[:300]}")
         me = resp.json()

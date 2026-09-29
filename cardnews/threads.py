@@ -9,12 +9,21 @@ import requests
 API = "https://graph.threads.net/v1.0"
 TEXT_LIMIT = 500
 
+def blocked_hint(text):
+    # 메타가 앱/계정의 API 사용을 막으면 토큰과 무관하게 code 200 "API access blocked"가 온다
+    if "API access blocked" in text:
+        return ("메타가 API 접근을 차단했습니다(토큰 문제 아님). developers.facebook.com 앱 대시보드의 "
+                "알림·제한 사항과 계정 상태를 확인하세요. ")
+    return ""
+
 
 class ThreadsClient:
     def __init__(self, access_token):
         self.token = access_token
         # 사용자 ID는 토큰에서 직접 조회한다 (앱 ID를 잘못 넣는 실수 방지)
         resp = requests.get(f"{API}/me", params={"fields": "id,username", "access_token": access_token}, timeout=30)
+        if not resp.ok and blocked_hint(resp.text):
+            raise RuntimeError(f"Threads: {blocked_hint(resp.text)}({resp.status_code}): {resp.text[:300]}")
         if not resp.ok:
             raise RuntimeError(
                 "Threads 토큰이 올바르지 않습니다. 앱 시크릿이 아니라 User Token Generator에서 "
