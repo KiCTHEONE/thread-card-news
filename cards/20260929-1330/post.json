@@ -1,0 +1,78 @@
+{
+ "created_at": "2026-09-29T13:30:44.113151+09:00",
+ "images": [
+  "card_01.jpg",
+  "card_02.jpg",
+  "card_03.jpg",
+  "card_04.jpg",
+  "card_05.jpg"
+ ],
+ "text": "[한카뉴 이슈 브리핑]\n새로운 정치 및 경제 주요 소식을 정리합니다.\n\n• 이재명 대통령이 DMZ 사고의 철저한 진상 조사와 무분별한 음모론 자제를 당부했습니다.\n\n• 경찰의 사건 조작과 은폐에 대해 내부 감찰과 징계 강화를 주문했습니다.\n\n• 당정이 베어허그 연내 입법 추진 및 저PBR 기업 명단 공개 방침을 밝혔습니다.\n\n- 한카뉴",
+ "topic_tag": "정치뉴스",
+ "reply": "출처\n\nYTN · 이 대통령 \"DMZ 사고 진상 조사 철저히...음모론…\nhttps://www.ytn.co.kr/_ln/0101_202609291133185995\n\nYTN · 이 대통령 \"철저한 조사로 투명하게 밝혀야\"...정부…\nhttps://www.ytn.co.kr/_ln/0101_202609291230422030\n\nKBS 뉴스 · 민주당 “북 지뢰로 최종 확인되면 상응 조치…국민의힘…\nhttps://news.kbs.co.kr/news/view.do?ncd=8673563\n\nSBS · 이 대통령 \"사건 조작 경찰을 경징계? 내부 감찰 강…\nhttps://news.sbs.co.kr/news/endPage.do?news_id=N1008774546\n\n연합뉴스TV · 경찰, ’불법 여론조사 의혹’ 관련 충주시청 압수수색\n\nMBC 뉴스 · 이 대통령 \"경찰 사건 조작·은폐 경징계 말 안돼\" …\n\n연합뉴스TV · 당정 \"베어허그 연내 입법 추진…저PBR 기업 명단공…",
+ "reply_fallbacks": [
+  "출처\n\nYTN · 이 대통령 \"DMZ 사고 진상 조사 철저히...음모론…\nhttps://www.ytn.co.kr/_ln/0101_202609291133185995\n\nYTN · 이 대통령 \"철저한 조사로 투명하게 밝혀야\"...정부…\nhttps://www.ytn.co.kr/_ln/0101_202609291230422030\n\nKBS 뉴스 · 민주당 “북 지뢰로 최종 확인되면 상응 조치…국민의힘…\n\nSBS · 이 대통령 \"사건 조작 경찰을 경징계? 내부 감찰 강…\n\n연합뉴스TV · 경찰, ’불법 여론조사 의혹’ 관련 충주시청 압수수색\n\nMBC 뉴스 · 이 대통령 \"경찰 사건 조작·은폐 경징계 말 안돼\" …\n\n연합뉴스TV · 당정 \"베어허그 연내 입법 추진…저PBR 기업 명단공…",
+  "출처\n\nYTN · 이 대통령 \"DMZ 사고 진상 조사 철저히...음모론…\n\nYTN · 이 대통령 \"철저한 조사로 투명하게 밝혀야\"...정부…\n\nKBS 뉴스 · 민주당 “북 지뢰로 최종 확인되면 상응 조치…국민의힘…\n\nSBS · 이 대통령 \"사건 조작 경찰을 경징계? 내부 감찰 강…\n\n연합뉴스TV · 경찰, ’불법 여론조사 의혹’ 관련 충주시청 압수수색\n\nMBC 뉴스 · 이 대통령 \"경찰 사건 조작·은폐 경징계 말 안돼\" …\n\n연합뉴스TV · 당정 \"베어허그 연내 입법 추진…저PBR 기업 명단공…"
+ ],
+ "pending_links": [
+  "https://news.google.com/rss/articles/CBMiXkFVX3lxTFB2RXNLeUR6RHNTcUNBY3p5cERyTjRUUEdmSWdNRUNJYTliUlJqNWlSRDVnd3p6WXIyelRTR0loQnNhdFJaanhHNHZxbFBHNng0a3pwYTNWMUtpdGZOa1E?oc=5",
+  "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBLRTlaT2JWTFRWZEY2VnVnWmpHUVZTTU42TE81Q3BuSHBBZ29NSEZ6WUZ3Q1BRVUMzby1PdWx4ZHJFWHJ1WXBhYmlmbnk1Tmh6a1lrNVVGTXNTMUZXSlhPMGg5TUVVWE0?oc=5",
+  "https://news.google.com/rss/articles/CBMiakFVX3lxTFBqbVFlUzJYM2tKQkFzQXBCdUxFaGlYeE5yY0oyVE1fdXhCUVJQRThIZllUZVNzdVdRWi1jUWNwQnFSOHVIUU1NQndvYkF4REtfZmZNSGViaml6aXdob1AxM3pYV3lJNTJJRkE?oc=5",
+  "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE1DQXRyclpzc3BDSmJYTGR1MWU2bmVsWDdscVl6SnBQR2pmQ25EWmF5bUZULW1pVld2VUt1Sm4xZGtrNEV5RnVzVnRObkZxa20tSG5iZHVqVVZnOUk3aWNzUTlUSGNWZGc?oc=5",
+  "https://news.google.com/rss/articles/CBMiXkFVX3lxTE1JLV8yYXp2QWFaQ1BNVUtFckZkZ0RzZ2gtRnNZOTFjVkNILWNUN0dNeFp2a05QUEN4VERVX0VjY2RPV2djYTM1S2hjclFZSmpaQ0Mtd1drYldUd0lSaGc?oc=5",
+  "https://news.google.com/rss/articles/CBMieEFVX3lxTE82WkxrQ2gwYjFmUXhuaU1FSG9fcGZzT09mNF82QjJ4eU1Fb0lHcjhKSDgzR1BVcWloaVpYYWNkX1pGT0t6LXdBeXhZY3c1XzdGcHg1T2NTUHlrM0xCT2Nkc0JlWWgyblpMU1dfN1dmVjBNaHpOODFXYdIBeEFVX3lxTE9QNzJubDdBM1ZDUldlRkJ3YUdLb0MzVWxJeERXMWlwYXBWYVlEWWwzU2o4OTZuT3dOZnkzMVJ5TnpMN0NXaWQ4WDZUMHNsOW5tUXlISTRfbDQ3YkFTYlFScksyMVRGX3VLYXZiZDk2M193aHRjYXJrag?oc=5",
+  "https://news.google.com/rss/articles/CBMiW0FVX3lxTE5SZDNoZUM4ZDVrN2VaMUVsYkhaRjJJQl9qcUVqX28tdGpkejdBZGJIQ0g5UEJGYmlpUFd4SkhSVmdIMDBvdlNnekJCVnR0MGFfT25URGJIdXVieXc?oc=5"
+ ],
+ "card_titles": [
+  "DMZ 사고 진상 조사 지시",
+  "경찰 사건 조작 징계 강화 주문",
+  "당정, 베어허그 연내 입법 추진"
+ ],
+ "used_titles": [
+  "이 대통령 \"DMZ 사고 진상 조사 철저히...음모론 자제해야\"",
+  "당정 \"베어허그 연내 입법 추진…저PBR 기업 명단공개 예정대로\"",
+  "이 대통령 \"사건 조작 경찰을 경징계? 내부 감찰 강화해야\" - news.sbs.co.kr",
+  "경찰, ’불법 여론조사 의혹’ 관련 충주시청 압수수색",
+  "이 대통령 \"철저한 조사로 투명하게 밝혀야\"...정부 대응은? [시사정각]",
+  "이 대통령 \"경찰 사건 조작·은폐 경징계 말 안돼\" 징계·감찰 대폭 강화 주문",
+  "민주당 “북 지뢰로 최종 확인되면 상응 조치…국민의힘은 정쟁 멈춰야”"
+ ],
+ "instagram_caption": "[한카뉴 이슈 브리핑]\n새로운 정치 및 경제 주요 소식을 정리합니다.\n\n• 이재명 대통령이 DMZ 사고의 철저한 진상 조사와 무분별한 음모론 자제를 당부했습니다.\n\n• 경찰의 사건 조작과 은폐에 대해 내부 감찰과 징계 강화를 주문했습니다.\n\n• 당정이 베어허그 연내 입법 추진 및 저PBR 기업 명단 공개 방침을 밝혔습니다.\n\n- 한카뉴\n\n출처\n· YTN · 이 대통령 \"DMZ 사고 진상 조사 철저히...음모론 자제해야\"\n· 연합뉴스TV · 당정 \"베어허그 연내 입법 추진…저PBR 기업 명단공개 예정대로\"\n· SBS · 이 대통령 \"사건 조작 경찰을 경징계? 내부 감찰 강화해야\" - news.sbs.co.kr\n· 연합뉴스TV · 경찰, ’불법 여론조사 의혹’ 관련 충주시청 압수수색\n· YTN · 이 대통령 \"철저한 조사로 투명하게 밝혀야\"...정부 대응은? [시사정각]\n· MBC 뉴스 · 이 대통령 \"경찰 사건 조작·은폐 경징계 말 안돼\" 징계·감찰 대폭 강화 주문\n· KBS 뉴스 · 민주당 “북 지뢰로 최종 확인되면 상응 조치…국민의힘은 정쟁 멈춰야”\n\n#korea #대한민국 #정치뉴스 #경제뉴스 #재선거",
+ "instagram_interval_minutes": 60,
+ "summary": {
+  "worth_posting": true,
+  "headline": "대통령, DMZ 지뢰 철저 조사 당부",
+  "cards": [
+   {
+    "tag": "군사·안보",
+    "title": "DMZ 사고 진상 조사 지시",
+    "body": "이재명 대통령은 DMZ 사고와 관련해 철저한 진상 조사를 지시하며 무분별한 음모론 자제를 당부했다. 여야는 북한 지뢰 가능성을 두고 각각 상응 조치 촉구와 정쟁 중단을 요구했다.",
+    "source_ids": [
+     3,
+     21,
+     30
+    ]
+   },
+   {
+    "tag": "일반 정치",
+    "title": "경찰 사건 조작 징계 강화 주문",
+    "body": "이 대통령은 경찰의 사건 조작과 은폐 행위에 대해 경징계로는 안 된다며 내부 감찰과 징계 강화를 주문했다. 한편 충주시청은 불법 여론조사 의혹과 관련해 경찰 압수수색을 받았다.",
+    "source_ids": [
+     12,
+     15,
+     23
+    ]
+   },
+   {
+    "tag": "통상·경제안보",
+    "title": "당정, 베어허그 연내 입법 추진",
+    "body": "당정은 적대적 인수합병 방어를 위한 베어허그 도입을 연내에 입법 추진하기로 했다. 이와 함께 저PBR 기업 명단 공개도 예정대로 진행할 방침이라고 밝혔다.",
+    "source_ids": [
+     4
+    ]
+   }
+  ],
+  "thread_text": "새로운 정치 및 경제 주요 소식을 정리합니다. • 이재명 대통령이 DMZ 사고의 철저한 진상 조사와 무분별한 음모론 자제를 당부했습니다. • 경찰의 사건 조작과 은폐에 대해 내부 감찰과 징계 강화를 주문했습니다. • 당정이 베어허그 연내 입법 추진 및 저PBR 기업 명단 공개 방침을 밝혔습니다.",
+  "topic_tag": "정치뉴스"
+ }
+}
